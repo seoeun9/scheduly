@@ -1,4 +1,6 @@
 import { Text, View, ImageBackground } from 'react-native';
+import WeekCarousel from '@/components/WeekCarousel';
+import Calender from '@/components/Calendar';
 
 export default function CalendarScreen() {
   return (
@@ -6,9 +8,8 @@ export default function CalendarScreen() {
       source={require('@/assets/images/backgroundImage.png')}
       resizeMode="cover"
       className="flex-1">
-      <View className="flex-1 items-center justify-center bg-transparent">
-        <Text className="text-manrope text-purple-600">Oh~</Text>
-      </View>
+      <WeekCarousel />
+      <Calender />
     </ImageBackground>
   );
 }
