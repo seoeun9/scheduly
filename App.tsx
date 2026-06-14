@@ -2,16 +2,14 @@
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useFonts } from 'expo-font';
-import { Manrope_400Regular, Manrope_500Medium, Manrope_700Bold } from '@expo-google-fonts/manrope';
+import { McLaren_400Regular } from '@expo-google-fonts/mclaren';
 
 import './global.css';
 import Navigator from '@/navigation/Navigator';
 
 export default function App() {
   const [fontsLoaded] = useFonts({
-    Manrope_400Regular,
-    Manrope_500Medium,
-    Manrope_700Bold,
+    McLaren_400Regular,
   });
 
   if (!fontsLoaded) return null;

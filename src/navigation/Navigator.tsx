@@ -29,7 +29,7 @@ function GlassTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
               onPress={() => navigation.navigate(route.name)}>
               {options.tabBarIcon?.({
                 focused: isFocused,
-                color: isFocused ? '#C084B5' : 'rgba(192, 132, 181, 0.55)',
+                color: isFocused ? '#715E65' : '#FFD5E6',
                 size: 28,
               })}
             </Pressable>
@@ -49,17 +49,17 @@ export default function Navigator() {
           headerShown: false,
         }}>
         <Tab.Screen
-          name="List"
-          component={ListScreen}
-          options={{
-            tabBarIcon: ({ color }) => <ListIcon color={color} />,
-          }}
-        />
-        <Tab.Screen
           name="Calendar"
           component={CalendarScreen}
           options={{
             tabBarIcon: ({ color }) => <CalendarIcon color={color} />,
+          }}
+        />
+        <Tab.Screen
+          name="List"
+          component={ListScreen}
+          options={{
+            tabBarIcon: ({ color }) => <ListIcon color={color} />,
           }}
         />
         <Tab.Screen
@@ -81,7 +81,7 @@ const styles = StyleSheet.create({
     bottom: 28,
 
     width: 335,
-    height: 76,
+    height: 50,
     borderRadius: 38,
     overflow: 'hidden',
 
@@ -89,16 +89,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-around',
 
-    borderWidth: 1.5,
-    borderColor: 'rgba(255, 255, 255, 0.85)',
-
-    backgroundColor: 'rgba(255, 255, 255, 0.38)',
-
-    shadowColor: '#C084B5',
-    shadowOpacity: 0.18,
-    shadowRadius: 22,
-    shadowOffset: { width: 0, height: 8 },
-    elevation: 8,
+    backgroundColor: '#FFFFFF',
   },
 
   tabItem: {

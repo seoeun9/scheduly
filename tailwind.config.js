@@ -5,9 +5,9 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        manrope: ['Manrope_400Regular'],
-        'manrope-medium': ['Manrope_500Medium'],
-        'manrope-bold': ['Manrope_700Bold'],
+        manrope: ['McLaren_400Regular'],
+        'manrope-medium': ['McLaren_500Medium'],
+        'manrope-bold': ['McLaren_700Bold'],
       },
     },
   },
