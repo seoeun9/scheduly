@@ -1,32 +1,22 @@
 {
   "expo": {
-    "name": "my-expo-app",
-    "slug": "my-expo-app",
+    "name": "Scheduly",
+    "slug": "scheduly",
     "version": "1.0.0",
-    "web": {
-      "favicon": "./src/assets/favicon.png"
-    },
     "experiments": {
       "tsconfigPaths": true
     },
     "plugins": ["expo-font"],
     "orientation": "portrait",
-    "icon": "./src/assets/icon.png",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "./src/assets/splash.png",
+      "image": "./src/assets/splash-transparent.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#BFE6FB"
     },
     "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true
-    },
-    "android": {
-      "adaptiveIcon": {
-        "foregroundImage": "./src/assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
-      }
     }
   }
 }
