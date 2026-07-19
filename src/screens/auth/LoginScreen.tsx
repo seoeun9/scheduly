@@ -10,13 +10,19 @@ import {
   View,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useToast } from '@/components/ToastProvider';
 
 export default function LoginScreen({ navigation }: any) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const { showToast } = useToast();
 
   const handleLogin = () => {
-    console.log({ email, password });
+    if (!email.trim() || !password.trim()) {
+      return;
+    }
+    showToast('Welcome back!');
+    navigation.replace('Main');
   };
 
   return (

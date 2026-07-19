@@ -5,10 +5,11 @@ import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useFonts } from 'expo-font';
 import { McLaren_400Regular } from '@expo-google-fonts/mclaren';
-
 import './global.css';
 import { NavigationContainer } from '@react-navigation/native';
 import RootNavigator from '@/navigation/RootNavigator';
+import { ToastProvider } from '@/components/ToastProvider';
+
 function Sparkle({ style }: { style?: object }) {
   return <View style={[styles.sparkle, style]} />;
 }
@@ -134,9 +135,11 @@ export default function App() {
   if (!fontsLoaded) return null;
   return (
     <SafeAreaProvider>
-      <NavigationContainer>
-        <RootNavigator />
-      </NavigationContainer>
+      <ToastProvider>
+        <NavigationContainer>
+          <RootNavigator />
+        </NavigationContainer>
+      </ToastProvider>
       {showSplash && <SchedulySplash onFinish={() => setShowSplash(false)} />}
       <StatusBar style="auto" />
     </SafeAreaProvider>

@@ -6,7 +6,10 @@
     "experiments": {
       "tsconfigPaths": true
     },
-    "plugins": ["expo-font"],
+    "plugins": [
+      "expo-font",
+      "expo-secure-store"
+    ],
     "orientation": "portrait",
     "userInterfaceStyle": "light",
     "splash": {
@@ -14,7 +17,9 @@
       "resizeMode": "contain",
       "backgroundColor": "#BFE6FB"
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": true
     }
