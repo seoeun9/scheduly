@@ -22,7 +22,7 @@ export default function LoginScreen({ navigation }: any) {
       return;
     }
     showToast('Welcome back!');
-    navigation.replace('Main');
+    navigation.replace('AppTabs');
   };
 
   return (

@@ -9,6 +9,7 @@ import './global.css';
 import { NavigationContainer } from '@react-navigation/native';
 import RootNavigator from '@/navigation/RootNavigator';
 import { ToastProvider } from '@/components/ToastProvider';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 function Sparkle({ style }: { style?: object }) {
   return <View style={[styles.sparkle, style]} />;
@@ -134,15 +135,17 @@ export default function App() {
 
   if (!fontsLoaded) return null;
   return (
-    <SafeAreaProvider>
-      <ToastProvider>
-        <NavigationContainer>
-          <RootNavigator />
-        </NavigationContainer>
-      </ToastProvider>
-      {showSplash && <SchedulySplash onFinish={() => setShowSplash(false)} />}
-      <StatusBar style="auto" />
-    </SafeAreaProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaProvider>
+        <ToastProvider>
+          <NavigationContainer>
+            <RootNavigator />
+          </NavigationContainer>
+        </ToastProvider>
+        {showSplash && <SchedulySplash onFinish={() => setShowSplash(false)} />}
+        <StatusBar style="auto" />
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
   );
 }
 

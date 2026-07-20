@@ -1,50 +1,128 @@
 import { create } from 'zustand';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { createJSONStorage, persist } from 'zustand/middleware';
+import { TodoColor } from '@/types/todo';
+import type { SFSymbol } from 'expo-symbols';
 
-type Todo = {
+export type Todo = {
   id: string;
   date: string;
   title: string;
-  time: string;
   done: boolean;
+  color: TodoColor;
+  icon: SFSymbol;
 };
+
+type AddTodoInput = {
+  title: string;
+  color: TodoColor;
+  icon: SFSymbol;
+};
+
+type UpdateTodoInput = Partial<Pick<Todo, 'date' | 'title' | 'done' | 'color' | 'icon'>>;
 
 type TodoStore = {
   selectedDate: string;
-  selectedTime: string;
   todos: Todo[];
+
   setSelectedDate: (date: string) => void;
-  setSelectedTime: (time: string) => void;
-  addTodo: (title: string) => void;
+
+  addTodo: (input: AddTodoInput) => void;
   toggleTodo: (id: string) => void;
+  updateTodo: (id: string, changes: UpdateTodoInput) => void;
+  removeTodo: (id: string) => void;
+  reorderTodos: (date: string, done: boolean, reorderedTodos: Todo[]) => void;
 };
 
-export const useTodoStore = create<TodoStore>((set, get) => ({
-  selectedDate: '',
-  selectedTime: '',
-  todos: [],
+export const useTodoStore = create<TodoStore>()(
+  persist(
+    (set, get) => ({
+      selectedDate: '',
+      todos: [],
 
-  setSelectedDate: (date) => set({ selectedDate: date }),
-  setSelectedTime: (time) => set({ selectedTime: time }),
+      setSelectedDate: (date) => {
+        set({
+          selectedDate: date,
+        });
+      },
 
-  addTodo: (title) => {
-    const { selectedDate } = get();
-    const { selectedTime } = get();
-    set((state) => ({
-      todos: [
-        ...state.todos,
-        {
-          id: Date.now().toString(),
+      addTodo: ({ title, color, icon }) => {
+        const { selectedDate } = get();
+        const trimmedTitle = title.trim();
+
+        if (!selectedDate || !trimmedTitle) {
+          return;
+        }
+
+        const newTodo: Todo = {
+          id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
           date: selectedDate,
-          time: selectedTime,
-          title,
+          title: trimmedTitle,
           done: false,
-        },
-      ],
-    }));
-  },
+          color,
+          icon,
+        };
 
-  toggleTodo: (id) =>
-    set((state) => ({
-      todos: state.todos.map((todo) => (todo.id === id ? { ...todo, done: !todo.done } : todo)),
-    })),
-}));
+        set((state) => ({
+          todos: [...state.todos, newTodo],
+        }));
+      },
+
+      toggleTodo: (id) => {
+        set((state) => ({
+          todos: state.todos.map((todo) =>
+            todo.id === id
+              ? {
+                  ...todo,
+                  done: !todo.done,
+                }
+              : todo
+          ),
+        }));
+      },
+
+      updateTodo: (id, changes) => {
+        set((state) => ({
+          todos: state.todos.map((todo) =>
+            todo.id === id
+              ? {
+                  ...todo,
+                  ...changes,
+                }
+              : todo
+          ),
+        }));
+      },
+
+      removeTodo: (id) => {
+        set((state) => ({
+          todos: state.todos.filter((todo) => todo.id !== id),
+        }));
+      },
+      reorderTodos: (date, done, reorderedTodos) => {
+        set((state) => {
+          let reorderedIndex = 0;
+
+          return {
+            todos: state.todos.map((todo) => {
+              const isTarget = todo.date === date && todo.done === done;
+
+              if (!isTarget) {
+                return todo;
+              }
+
+              const reorderedTodo = reorderedTodos[reorderedIndex];
+              reorderedIndex += 1;
+
+              return reorderedTodo ?? todo;
+            }),
+          };
+        });
+      },
+    }),
+    {
+      name: 'scheduly-todo-storage',
+      storage: createJSONStorage(() => AsyncStorage),
+    }
+  )
+);
