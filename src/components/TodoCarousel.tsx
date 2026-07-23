@@ -4,12 +4,14 @@ import * as Haptics from 'expo-haptics';
 import { useTodoStore } from '@/stores/useTodoStore';
 import { TodoRow } from './TodoRow';
 import { useNavigation } from '@react-navigation/native';
+import { useTheme } from '@/hooks/useTheme';
 
 export default function TodoCarousel() {
   const selectedDate = useTodoStore((state) => state.selectedDate);
   const todos = useTodoStore((state) => state.todos);
   const toggleTodo = useTodoStore((state) => state.toggleTodo);
   const navigation = useNavigation<any>();
+  const { isDark } = useTheme();
 
   const selectedTodos = useMemo(
     () => todos.filter((todo) => todo.date === selectedDate),
@@ -39,6 +41,7 @@ export default function TodoCarousel() {
         todos={activeTodos}
         completed={false}
         emptyMessage={completedTodos.length ? '모든 일을 완료했어요!' : '아직 할 일이 없어요'}
+        isDark={isDark}
         onPressTodo={handleToggleTodo}
         onEditTodo={handleEditTodo}
         onAddTodo={() => {
@@ -54,6 +57,7 @@ export default function TodoCarousel() {
         todos={completedTodos}
         completed
         emptyMessage="아직 완료한 일이 없어요"
+        isDark={isDark}
         onEditTodo={handleEditTodo}
         onPressTodo={handleToggleTodo}
       />

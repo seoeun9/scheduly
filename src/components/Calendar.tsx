@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import type { Todo } from '@/stores/useTodoStore';
 import { TODO_COLORS, type TodoColor } from '@/types/todo';
+import { useTheme } from '@/hooks/useTheme';
 
 const WEEK_DAYS = ['월', '화', '수', '목', '금', '토', '일'];
 
@@ -29,6 +30,7 @@ type CalendarPageProps = {
   today: Date;
   selectedDate: string;
   todosByDate: Record<string, Todo[]>;
+  isDark: boolean;
   onSelectDate: (date: string) => void;
 };
 
@@ -121,6 +123,7 @@ function CalendarPage({
   today,
   selectedDate,
   todosByDate,
+  isDark,
   onSelectDate,
 }: CalendarPageProps) {
   const year = date.getFullYear();
@@ -167,12 +170,16 @@ function CalendarPage({
               <View
                 style={[
                   styles.dayCircle,
-                  isSelected && styles.selectedDayCircle,
-                  isToday && !isSelected && styles.todayOutline,
+                  isSelected && { backgroundColor: isDark ? '#DDDDDD' : '#111111' },
+                  isToday &&
+                    !isSelected && { borderWidth: 1, borderColor: isDark ? '#DDDDDD' : '#111111' },
                 ]}>
                 <Text
                   className="font-manrope"
-                  style={[styles.dayText, isSelected && styles.selectedDayText]}>
+                  style={[
+                    { color: isDark ? '#CCCCCC' : '#454545', fontSize: 14, fontWeight: '500' },
+                    isSelected && { color: isDark ? '#000000' : '#FFFFFF', fontWeight: '700' },
+                  ]}>
                   {day}
                 </Text>
               </View>
@@ -187,6 +194,7 @@ function CalendarPage({
 }
 
 export default function Calendar({ selectedDate, todos, onSelectDate }: SchedulyCalendarProps) {
+  const { isDark } = useTheme();
   const today = useMemo(() => new Date(), []);
 
   const [visibleDate, setVisibleDate] = useState(
@@ -377,7 +385,7 @@ export default function Calendar({ selectedDate, todos, onSelectDate }: Scheduly
         <View>
           <Text className="text-[13px] font-medium text-[#A5A5A5]">Today</Text>
 
-          <Text className="text-xl font-semibold text-black">
+          <Text className={`text-xl font-semibold ${isDark ? 'text-white' : 'text-black'}`}>
             {today.getFullYear()}년 {today.getMonth() + 1}월 {today.getDate()}일
           </Text>
         </View>
@@ -386,31 +394,33 @@ export default function Calendar({ selectedDate, todos, onSelectDate }: Scheduly
       <View className="relative mb-6 h-8 flex-row items-center justify-center">
         <View className="w-[230px] flex-row items-center justify-between">
           <Pressable
-            className="h-8 w-8 items-center justify-center rounded-full active:bg-[#F2F2F2]"
+            className={`h-8 w-8 items-center justify-center rounded-full ${isDark ? 'active:bg-[#2A2A2A]' : 'active:bg-[#F2F2F2]'}`}
             onPress={handlePreviousMonth}
             hitSlop={8}>
-            <Ionicons name="chevron-back" size={18} color="#000000" />
+            <Ionicons name="chevron-back" size={18} color={isDark ? '#FFFFFF' : '#000000'} />
           </Pressable>
 
           <View className="w-[110px] items-center justify-center overflow-hidden">
-            <Text className="font-medium text-black">
+            <Text className={`font-medium ${isDark ? 'text-white' : 'text-black'}`}>
               {year}년 {month + 1}월
             </Text>
           </View>
 
           <Pressable
-            className="h-8 w-8 items-center justify-center rounded-full active:bg-[#F2F2F2]"
+            className={`h-8 w-8 items-center justify-center rounded-full ${isDark ? 'active:bg-[#2A2A2A]' : 'active:bg-[#F2F2F2]'}`}
             onPress={handleNextMonth}
             hitSlop={8}>
-            <Ionicons name="chevron-forward" size={18} color="#111111" />
+            <Ionicons name="chevron-forward" size={18} color={isDark ? '#FFFFFF' : '#111111'} />
           </Pressable>
         </View>
 
         <Pressable
-          className="absolute right-0 h-7 items-center justify-center rounded-full border border-black bg-white px-3 active:scale-95 active:opacity-70"
+          className={`absolute right-0 h-7 items-center justify-center rounded-full border px-3 active:scale-95 active:opacity-70 ${isDark ? 'border-white bg-transparent' : 'border-black bg-white'}`}
           onPress={handleToday}
           hitSlop={6}>
-          <Text className="text-[11px] font-semibold text-black">오늘</Text>
+          <Text className={`text-[11px] font-semibold ${isDark ? 'text-white' : 'text-black'}`}>
+            오늘
+          </Text>
         </Pressable>
       </View>
 
@@ -446,6 +456,7 @@ export default function Calendar({ selectedDate, todos, onSelectDate }: Scheduly
                 today={today}
                 selectedDate={selectedDate}
                 todosByDate={todosByDate}
+                isDark={isDark}
                 onSelectDate={onSelectDate}
               />
             ))}

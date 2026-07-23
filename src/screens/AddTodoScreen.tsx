@@ -16,8 +16,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { SymbolView, type SFSymbol } from 'expo-symbols';
 import * as Haptics from 'expo-haptics';
 import { useTodoStore } from '@/stores/useTodoStore';
-import { TODO_COLORS, type TodoColor } from '@/types/todo';
-import { TODO_ICONS } from '@/utils/constants';
+import { type TodoColor } from '@/types/todo';
+import { TODO_ICONS, TODO_COLORS } from '@/utils/constants';
+import { useTheme } from '@/hooks/useTheme';
 
 const ICON_ROWS = 3;
 
@@ -38,6 +39,7 @@ export default function AddTodoScreen({ navigation, route }: any) {
   const [selectedIcon, setSelectedIcon] = useState<SFSymbol>('checkmark.circle');
   const [selectedColor, setSelectedColor] = useState<TodoColor>('blue');
   const previewMode: 'calendar' | 'list' = route.params?.previewMode ?? 'calendar';
+  const { isDark } = useTheme();
   const iconScrollX = useRef(new Animated.Value(0)).current;
 
   const [iconViewportWidth, setIconViewportWidth] = useState(0);
@@ -84,6 +86,12 @@ export default function AddTodoScreen({ navigation, route }: any) {
   };
 
   const selectedPalette = TODO_COLORS[selectedColor];
+  const selectedPaletteColor =
+    'color' in selectedPalette
+      ? selectedPalette.color
+      : isDark
+        ? selectedPalette.darkColor
+        : selectedPalette.lightColor;
   const iconMaxScroll = Math.max(iconContentWidth - iconViewportWidth, 1);
 
   const iconThumbWidth =
@@ -100,7 +108,9 @@ export default function AddTodoScreen({ navigation, route }: any) {
   });
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
+    <SafeAreaView
+      style={[styles.safeArea, { backgroundColor: isDark ? '#000000' : '#FFFFFF' }]}
+      edges={['top', 'bottom']}>
       <KeyboardAvoidingView
         style={styles.screen}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
@@ -110,27 +120,31 @@ export default function AddTodoScreen({ navigation, route }: any) {
           showsVerticalScrollIndicator={false}>
           <View className="flex-row items-center justify-between">
             <Pressable
-              className="h-10 w-10 items-center justify-center rounded-full bg-[#F0F0F0]"
+              className={`h-10 w-10 items-center justify-center rounded-full ${isDark ? 'bg-[#2A2A2A]' : 'bg-[#F0F0F0]'}`}
               style={({ pressed }) => [pressed && styles.buttonPressed]}
               onPress={handleClose}
               hitSlop={8}>
-              <Ionicons name="close" size={23} color="#222631" />
+              <Ionicons name="close" size={23} color={isDark ? '#FFFFFF' : '#222631'} />
             </Pressable>
 
             <Pressable
-              className="rounded-full bg-black px-5 py-3"
+              className={`rounded-full px-5 py-3 ${isDark ? 'bg-white' : 'bg-black'}`}
               style={({ pressed }) => [
                 isSaveDisabled && styles.saveButtonDisabled,
                 pressed && !isSaveDisabled && styles.buttonPressed,
               ]}
               disabled={isSaveDisabled}
               onPress={handleSave}>
-              <Text className="text-sm font-semibold text-white">추가하기</Text>
+              <Text className={`text-sm font-semibold ${isDark ? 'text-black' : 'text-white'}`}>
+                추가하기
+              </Text>
             </Pressable>
           </View>
 
           <View className="mt-8 gap-2">
-            <Text className="text-3xl font-medium text-[#181A21]">새로운 할 일 추가</Text>
+            <Text className={`text-3xl font-medium ${isDark ? 'text-white' : 'text-[#181A21]'}`}>
+              새로운 할 일 추가
+            </Text>
 
             <Text className="text-sm text-[#A5A5A5]">
               on {selectedDate || '날짜를 선택해주세요'}
@@ -138,12 +152,16 @@ export default function AddTodoScreen({ navigation, route }: any) {
           </View>
 
           <View className="mt-9">
-            <Text className="mb-3 text-sm font-semibold text-[#181A21]">제목</Text>
+            <Text
+              className={`mb-3 text-sm font-semibold ${isDark ? 'text-white' : 'text-[#181A21]'}`}>
+              제목
+            </Text>
 
-            <View className="flex-row items-center rounded-[20px] bg-[#F4F4F4] px-5">
+            <View
+              className={`flex-row items-center rounded-[20px] px-5 ${isDark ? 'bg-[#1A1A1A]' : 'bg-[#F4F4F4]'}`}>
               <SymbolView
                 name={selectedIcon}
-                tintColor={selectedPalette.color}
+                tintColor={selectedPaletteColor}
                 style={styles.titleIcon}
               />
 
@@ -154,7 +172,7 @@ export default function AddTodoScreen({ navigation, route }: any) {
                 placeholderTextColor="#A5A5A5"
                 returnKeyType="done"
                 maxLength={15}
-                className="ml-3 h-16 flex-1 text-[16px] text-[#181A21]"
+                className={`ml-3 h-16 flex-1 text-[16px] ${isDark ? 'text-white' : 'text-[#181A21]'}`}
                 onSubmitEditing={() => Keyboard.dismiss()}
               />
             </View>
@@ -163,7 +181,10 @@ export default function AddTodoScreen({ navigation, route }: any) {
           </View>
 
           <View className="mt-7">
-            <Text className="mb-4 text-sm font-semibold text-[#181A21]">아이콘</Text>
+            <Text
+              className={`mb-4 text-sm font-semibold ${isDark ? 'text-white' : 'text-[#181A21]'}`}>
+              아이콘
+            </Text>
 
             <View
               onLayout={(event) => {
@@ -215,12 +236,16 @@ export default function AddTodoScreen({ navigation, route }: any) {
                             style={({ pressed }) => [
                               {
                                 backgroundColor: isSelected
-                                  ? selectedPalette.backgroundColor
-                                  : '#F4F4F4',
+                                  ? isDark
+                                    ? selectedPalette.darkBackgroundColor
+                                    : selectedPalette.backgroundColor
+                                  : isDark
+                                    ? '#1A1A1A'
+                                    : '#F4F4F4',
 
                                 borderWidth: isSelected ? 1.5 : 0,
 
-                                borderColor: isSelected ? selectedPalette.color : 'transparent',
+                                borderColor: isSelected ? selectedPaletteColor : 'transparent',
                               },
 
                               pressed && styles.optionPressed,
@@ -230,7 +255,9 @@ export default function AddTodoScreen({ navigation, route }: any) {
                               name={icon}
                               type="monochrome"
                               size={22}
-                              tintColor={isSelected ? selectedPalette.color : '#777777'}
+                              tintColor={
+                                isSelected ? selectedPaletteColor : isDark ? '#888888' : '#777777'
+                              }
                             />
                           </Pressable>
                         );
@@ -245,7 +272,7 @@ export default function AddTodoScreen({ navigation, route }: any) {
                   height: 3,
                   marginTop: 13,
                   borderRadius: 2,
-                  backgroundColor: '#EEEEEE',
+                  backgroundColor: isDark ? '#2A2A2A' : '#EEEEEE',
                   overflow: 'hidden',
                 }}>
                 <Animated.View
@@ -254,7 +281,7 @@ export default function AddTodoScreen({ navigation, route }: any) {
                     height: 3,
 
                     borderRadius: 2,
-                    backgroundColor: '#8A8A8A',
+                    backgroundColor: isDark ? '#555555' : '#8A8A8A',
 
                     transform: [
                       {
@@ -296,11 +323,20 @@ export default function AddTodoScreen({ navigation, route }: any) {
           </View>
 
           <View className="mt-8">
-            <Text className="mb-4 text-sm font-semibold text-[#181A21]">색상</Text>
+            <Text
+              className={`mb-4 text-sm font-semibold ${isDark ? 'text-white' : 'text-[#181A21]'}`}>
+              색상
+            </Text>
 
             <View className="flex-row items-center gap-4">
               {COLOR_OPTIONS.map((color) => {
                 const palette = TODO_COLORS[color];
+                const paletteColor =
+                  'color' in palette
+                    ? palette.color
+                    : isDark
+                      ? palette.darkColor
+                      : palette.lightColor;
                 const isSelected = selectedColor === color;
 
                 return (
@@ -310,7 +346,7 @@ export default function AddTodoScreen({ navigation, route }: any) {
                     style={({ pressed }) => [
                       styles.colorButton,
                       {
-                        borderColor: isSelected ? '#181A21' : 'transparent',
+                        borderColor: isSelected ? (isDark ? '#FFFFFF' : '#181A21') : 'transparent',
                       },
                       pressed && styles.optionPressed,
                     ]}
@@ -318,13 +354,25 @@ export default function AddTodoScreen({ navigation, route }: any) {
                     <View
                       className="h-8 w-8 rounded-full"
                       style={{
-                        backgroundColor: palette.color,
+                        backgroundColor: paletteColor,
                       }}
                     />
 
                     {isSelected && (
-                      <View style={styles.colorCheck}>
-                        <Ionicons name="checkmark" size={10} color="#FFFFFF" />
+                      <View
+                        style={[styles.colorCheck, { overflow: 'hidden', flexDirection: 'row' }]}>
+                        <View style={{ flex: 1, backgroundColor: '#000000' }} />
+                        <View style={{ flex: 1, backgroundColor: '#FFFFFF' }} />
+                        <View
+                          style={{
+                            position: 'absolute',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            width: '100%',
+                            height: '100%',
+                          }}>
+                          <Ionicons name="checkmark" size={10} color="#808080" />
+                        </View>
                       </View>
                     )}
                   </Pressable>
@@ -335,25 +383,29 @@ export default function AddTodoScreen({ navigation, route }: any) {
 
           <View className="mt-9">
             <View className="mb-3 flex-row items-center justify-start">
-              <Text className="text-sm font-semibold text-[#181A21]">미리보기</Text>
+              <Text className={`text-sm font-semibold ${isDark ? 'text-white' : 'text-[#181A21]'}`}>
+                미리보기
+              </Text>
             </View>
 
             {previewMode === 'calendar' ? (
               <View
                 className="h-[58px] flex-row items-center rounded-full px-5"
                 style={{
-                  backgroundColor: selectedPalette.backgroundColor,
+                  backgroundColor: isDark
+                    ? selectedPalette.darkBackgroundColor
+                    : selectedPalette.backgroundColor,
                 }}>
                 <SymbolView
                   name={selectedIcon}
-                  tintColor={selectedPalette.color}
+                  tintColor={selectedPaletteColor}
                   style={styles.previewIcon}
                 />
 
                 <Text
                   className="ml-3 flex-1 text-[15px] font-semibold"
                   style={{
-                    color: selectedPalette.color,
+                    color: selectedPaletteColor,
                   }}
                   numberOfLines={1}>
                   {title.trim() || '새로운 할 일'}
@@ -368,14 +420,14 @@ export default function AddTodoScreen({ navigation, route }: any) {
                         name={selectedIcon}
                         type="monochrome"
                         size={21}
-                        tintColor={selectedPalette.color}
+                        tintColor={selectedPaletteColor}
                       />
                     </View>
 
                     <Text
                       className="ml-3 flex-1 text-[15px] font-semibold"
                       style={{
-                        color: selectedPalette.color,
+                        color: selectedPaletteColor,
                       }}
                       numberOfLines={1}>
                       {title.trim() || '새로운 할 일'}
@@ -404,7 +456,7 @@ export default function AddTodoScreen({ navigation, route }: any) {
                   </View>
                 </View>
 
-                <View className="ml-12 h-px bg-[#EEEEEE]" />
+                <View className={`ml-12 h-px ${isDark ? 'bg-[#2A2A2A]' : 'bg-[#EEEEEE]'}`} />
               </View>
             )}
           </View>

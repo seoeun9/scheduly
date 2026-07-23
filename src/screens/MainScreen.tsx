@@ -475,15 +475,20 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTodoStore } from '@/stores/useTodoStore';
 import Calendar from '@/components/Calendar';
 import TodoCarousel from '@/components/TodoCarousel';
+import { useTheme } from '@/hooks/useTheme';
 
 export default function MainScreen() {
   const selectedDate = useTodoStore((state) => state.selectedDate);
+  const { isDark } = useTheme();
 
   const setSelectedDate = useTodoStore((state) => state.setSelectedDate);
   const todos = useTodoStore((state) => state.todos);
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top']}>
+    <SafeAreaView
+      style={styles.safeArea}
+      edges={['top']}
+      className={isDark ? 'bg-black' : 'bg-white'}>
       <View style={styles.container}>
         <Calendar selectedDate={selectedDate} todos={todos} onSelectDate={setSelectedDate} />
 
@@ -496,7 +501,6 @@ export default function MainScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
   },
 
   container: {

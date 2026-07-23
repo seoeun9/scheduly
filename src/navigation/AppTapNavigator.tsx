@@ -9,6 +9,7 @@ import MainScreen from '@/screens/MainScreen';
 import TodoListScreen from '@/screens/TodoListScreen';
 import SettingScreen from '@/screens/SettingScreen';
 import * as Haptics from 'expo-haptics';
+import { useTheme } from '@/hooks/useTheme';
 
 export type AppTabParamList = {
   Calendar: undefined;
@@ -20,23 +21,37 @@ const Tab = createBottomTabNavigator<AppTabParamList>();
 
 type TabIconProps = {
   focused: boolean;
+  isDark: boolean;
   icon: keyof typeof Ionicons.glyphMap;
   label: string;
 };
 
-function TabIcon({ focused, icon, label }: TabIconProps) {
+function TabIcon({ focused, isDark, icon, label }: TabIconProps) {
   return (
     <View className="flex w-[100px] items-center pt-3">
       <View>
-        <Ionicons name={icon} size={21} color={focused ? '#111111' : '#818181'} />
+        <Ionicons
+          name={icon}
+          size={21}
+          color={focused ? (isDark ? '#FFFFFF' : '#111111') : isDark ? '#555555' : '#818181'}
+        />
       </View>
 
-      <Text style={[styles.tabLabel, focused && styles.activeTabLabel]}>{label}</Text>
+      <Text
+        style={[
+          styles.tabLabel,
+          { color: isDark ? '#555555' : '#818181' },
+          focused && { color: isDark ? '#FFFFFF' : '#111111', fontWeight: '700' },
+        ]}>
+        {label}
+      </Text>
     </View>
   );
 }
 
 export default function AppTabNavigator() {
+  const { isDark } = useTheme();
+
   return (
     <Tab.Navigator
       initialRouteName="Todos"
@@ -50,7 +65,14 @@ export default function AppTabNavigator() {
         tabBarShowLabel: false,
         tabBarHideOnKeyboard: true,
 
-        tabBarStyle: styles.tabBar,
+        tabBarStyle: [
+          styles.tabBar,
+          {
+            backgroundColor: isDark ? '#111111' : '#FFFFFF',
+            shadowColor: isDark ? '#000000' : '#6D9AB5',
+            shadowOpacity: isDark ? 0.5 : 0.16,
+          },
+        ],
         tabBarItemStyle: styles.tabBarItem,
 
         sceneStyle: {
@@ -64,6 +86,7 @@ export default function AppTabNavigator() {
           tabBarIcon: ({ focused }) => (
             <TabIcon
               focused={focused}
+              isDark={isDark}
               icon={focused ? 'calendar' : 'calendar-outline'}
               label="캘린더"
             />
@@ -76,7 +99,12 @@ export default function AppTabNavigator() {
         component={TodoListScreen}
         options={{
           tabBarIcon: ({ focused }) => (
-            <TabIcon focused={focused} icon={focused ? 'list' : 'list-outline'} label="리스트" />
+            <TabIcon
+              focused={focused}
+              isDark={isDark}
+              icon={focused ? 'list' : 'list-outline'}
+              label="리스트"
+            />
           ),
         }}
       />
@@ -95,7 +123,7 @@ export default function AppTabNavigator() {
         })}
         options={{
           tabBarIcon: ({ focused }) => (
-            <TabIcon focused={focused} icon="settings-outline" label="설정" />
+            <TabIcon focused={focused} isDark={isDark} icon="settings-outline" label="설정" />
           ),
         }}
       />

@@ -6,20 +6,15 @@
     "experiments": {
       "tsconfigPaths": true
     },
-    "plugins": [
-      "expo-font",
-      "expo-secure-store"
-    ],
+    "plugins": ["expo-font", "expo-secure-store"],
     "orientation": "portrait",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "automatic",
     "splash": {
       "image": "./src/assets/splash-transparent.png",
       "resizeMode": "contain",
       "backgroundColor": "#BFE6FB"
     },
-    "assetBundlePatterns": [
-      "**/*"
-    ],
+    "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true
     }
