@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Keyboard,
   KeyboardAvoidingView,
@@ -9,6 +9,7 @@ import {
   Text,
   TextInput,
   View,
+  Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -16,34 +17,41 @@ import { SymbolView, type SFSymbol } from 'expo-symbols';
 import * as Haptics from 'expo-haptics';
 import { useTodoStore } from '@/stores/useTodoStore';
 import { TODO_COLORS, type TodoColor } from '@/types/todo';
-
-const TODO_ICONS: SFSymbol[] = [
-  'checkmark.circle',
-  'calendar',
-  'clock',
-  'book',
-  'graduationcap',
-  'briefcase',
-  'cup.and.saucer',
-  'fork.knife',
-  'cart',
-  'figure.run',
-  'heart',
-  'star',
-  'gift',
-  'party.popper',
-  'airplane',
-  'house',
-];
+import { TODO_ICONS } from '@/utils/constants';
 
 const COLOR_OPTIONS = Object.keys(TODO_COLORS) as TodoColor[];
 
-export default function AddTodoScreen({ route, navigation }: any) {
-  const { todoId } = route.params;
+const ICON_ROWS = 3;
+
+const TODO_ICON_COLUMNS = Array.from(
+  {
+    length: Math.ceil(TODO_ICONS.length / ICON_ROWS),
+  },
+  (_, columnIndex) => {
+    const startIndex = columnIndex * ICON_ROWS;
+
+    return TODO_ICONS.slice(startIndex, startIndex + ICON_ROWS);
+  }
+);
+
+export default function EditTodoScreen({ route, navigation }: any) {
+  const {
+    todoId,
+    previewMode = 'calendar',
+  }: {
+    todoId: string;
+    previewMode?: 'calendar' | 'list';
+  } = route.params;
 
   const todo = useTodoStore((state) => state.todos.find((item) => item.id === todoId));
 
   const [title, setTitle] = useState('');
+
+  const iconScrollX = useRef(new Animated.Value(0)).current;
+
+  const [iconViewportWidth, setIconViewportWidth] = useState(0);
+
+  const [iconContentWidth, setIconContentWidth] = useState(0);
 
   useEffect(() => {
     if (!todo) {
@@ -108,6 +116,21 @@ export default function AddTodoScreen({ route, navigation }: any) {
 
   const selectedPalette = TODO_COLORS[selectedColor];
 
+  const iconMaxScroll = Math.max(iconContentWidth - iconViewportWidth, 1);
+
+  const iconThumbWidth =
+    iconContentWidth > iconViewportWidth
+      ? Math.max(40, iconViewportWidth * (iconViewportWidth / iconContentWidth))
+      : iconViewportWidth;
+
+  const iconThumbMaxTranslate = Math.max(iconViewportWidth - iconThumbWidth, 0);
+
+  const iconThumbTranslateX = iconScrollX.interpolate({
+    inputRange: [0, iconMaxScroll],
+    outputRange: [0, iconThumbMaxTranslate],
+    extrapolate: 'clamp',
+  });
+
   return (
     <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
       <KeyboardAvoidingView
@@ -169,19 +192,123 @@ export default function AddTodoScreen({ route, navigation }: any) {
                 placeholder="어떤 일을 할까요?"
                 placeholderTextColor="#A5A5A5"
                 returnKeyType="done"
-                maxLength={10}
+                maxLength={15}
                 className="ml-3 h-16 flex-1 text-[16px] text-[#181A21]"
                 onSubmitEditing={() => Keyboard.dismiss()}
               />
             </View>
 
-            <Text className="mt-2 text-right text-xs text-[#B0B0B0]">{title.length}/10</Text>
+            <Text className="mt-2 text-right text-xs text-[#B0B0B0]">{title.length}/15</Text>
           </View>
 
           <View className="mt-7">
             <Text className="mb-4 text-sm font-semibold text-[#181A21]">아이콘</Text>
 
-            <View className="flex-row flex-wrap gap-3">
+            <View
+              onLayout={(event) => {
+                setIconViewportWidth(event.nativeEvent.layout.width);
+              }}>
+              <Animated.ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                keyboardShouldPersistTaps="handled"
+                scrollEventThrottle={16}
+                onContentSizeChange={(width) => {
+                  setIconContentWidth(width);
+                }}
+                onScroll={Animated.event(
+                  [
+                    {
+                      nativeEvent: {
+                        contentOffset: {
+                          x: iconScrollX,
+                        },
+                      },
+                    },
+                  ],
+                  {
+                    useNativeDriver: false,
+                  }
+                )}
+                contentContainerStyle={{
+                  paddingRight: 24,
+                }}>
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    gap: 12,
+                  }}>
+                  {TODO_ICON_COLUMNS.map((iconColumn, columnIndex) => (
+                    <View
+                      key={`icon-column-${columnIndex}`}
+                      style={{
+                        gap: 12,
+                      }}>
+                      {iconColumn.map((icon) => {
+                        const isSelected = selectedIcon === icon;
+
+                        return (
+                          <Pressable
+                            key={icon}
+                            className="h-12 w-12 items-center justify-center rounded-2xl"
+                            style={({ pressed }) => [
+                              {
+                                backgroundColor: isSelected
+                                  ? selectedPalette.backgroundColor
+                                  : '#F4F4F4',
+
+                                borderWidth: isSelected ? 1.5 : 0,
+
+                                borderColor: isSelected ? selectedPalette.color : 'transparent',
+                              },
+
+                              pressed && styles.optionPressed,
+                            ]}
+                            onPress={() => handleSelectIcon(icon)}>
+                            <SymbolView
+                              name={icon}
+                              type="monochrome"
+                              tintColor={isSelected ? selectedPalette.color : '#777777'}
+                              style={styles.symbol}
+                            />
+                          </Pressable>
+                        );
+                      })}
+                    </View>
+                  ))}
+                </View>
+              </Animated.ScrollView>
+
+              <View
+                style={{
+                  height: 3,
+                  marginTop: 13,
+                  marginHorizontal: 8,
+
+                  borderRadius: 2,
+                  backgroundColor: '#EEEEEE',
+
+                  overflow: 'hidden',
+                }}>
+                <Animated.View
+                  style={{
+                    width: iconThumbWidth,
+                    height: 3,
+
+                    borderRadius: 2,
+                    backgroundColor: '#B5B5B5',
+
+                    transform: [
+                      {
+                        translateX: iconThumbTranslateX,
+                      },
+                    ],
+                  }}
+                />
+              </View>
+            </View>
+
+            {/* <View className="flex-row flex-wrap gap-3">
               {TODO_ICONS.map((icon) => {
                 const isSelected = selectedIcon === icon;
 
@@ -208,7 +335,7 @@ export default function AddTodoScreen({ route, navigation }: any) {
                   </Pressable>
                 );
               })}
-            </View>
+            </View> */}
           </View>
 
           <View className="mt-8">
@@ -250,28 +377,81 @@ export default function AddTodoScreen({ route, navigation }: any) {
           </View>
 
           <View className="mt-9">
-            <Text className="mb-3 text-sm font-semibold text-[#181A21]">미리보기</Text>
-
-            <View
-              className="h-[58px] flex-row items-center rounded-full px-5"
-              style={{
-                backgroundColor: selectedPalette.backgroundColor,
-              }}>
-              <SymbolView
-                name={selectedIcon}
-                tintColor={selectedPalette.color}
-                style={styles.previewIcon}
-              />
-
-              <Text
-                className="ml-3 flex-1 text-[15px] font-semibold"
-                style={{
-                  color: selectedPalette.color,
-                }}
-                numberOfLines={1}>
-                {title.trim() || '새로운 할 일'}
-              </Text>
+            <View className="mb-3 flex-row items-center justify-start">
+              <Text className="text-sm font-semibold text-[#181A21]">미리보기</Text>
             </View>
+
+            {previewMode === 'calendar' ? (
+              <View
+                className="h-[58px] flex-row items-center rounded-full px-5"
+                style={{
+                  backgroundColor: selectedPalette.backgroundColor,
+                }}>
+                <SymbolView
+                  name={selectedIcon}
+                  tintColor={selectedPalette.color}
+                  style={styles.previewIcon}
+                />
+
+                <Text
+                  className="ml-3 flex-1 text-[15px] font-semibold"
+                  style={{
+                    color: selectedPalette.color,
+                  }}
+                  numberOfLines={1}>
+                  {title.trim() || '할 일'}
+                </Text>
+              </View>
+            ) : (
+              <View>
+                <View className="h-16 flex-row items-center px-3">
+                  <View className="min-w-0 flex-1 flex-row items-center pr-3">
+                    <View className="h-9 w-9 items-center justify-center">
+                      <SymbolView
+                        name={selectedIcon}
+                        type="monochrome"
+                        size={21}
+                        tintColor={selectedPalette.color}
+                      />
+                    </View>
+
+                    <Text
+                      className="ml-3 flex-1 text-[15px] font-semibold"
+                      style={{
+                        color: selectedPalette.color,
+                        textDecorationLine: todo?.done ? 'line-through' : 'none',
+                        textDecorationColor: selectedPalette.color,
+                      }}
+                      numberOfLines={1}>
+                      {title.trim() || '할 일'}
+                    </Text>
+                  </View>
+
+                  <View className="h-[34px] w-[34px] items-center justify-center">
+                    <Ionicons
+                      name="checkmark-done"
+                      size={29}
+                      color={todo?.done ? selectedPalette.color : '#B7B7B7'}
+                      style={{
+                        transform: [
+                          {
+                            translateX: 1,
+                          },
+                          {
+                            translateY: -2,
+                          },
+                          {
+                            rotate: '-8deg',
+                          },
+                        ],
+                      }}
+                    />
+                  </View>
+                </View>
+
+                <View className="ml-12 h-px bg-[#EEEEEE]" />
+              </View>
+            )}
           </View>
         </ScrollView>
       </KeyboardAvoidingView>

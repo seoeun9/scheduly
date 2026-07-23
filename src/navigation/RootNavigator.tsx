@@ -15,8 +15,15 @@ export type RootStackParamList = {
   SignUp: undefined;
   Main: undefined;
   SettingsSheet: undefined;
-  AddTodo: undefined;
-  EditTodo: undefined;
+  AddTodo:
+    | {
+        previewMode?: 'calendar' | 'list';
+      }
+    | undefined;
+  EditTodo: {
+    todoId: string;
+    previewMode?: 'calendar' | 'list';
+  };
   AppTabs: undefined;
 };
 

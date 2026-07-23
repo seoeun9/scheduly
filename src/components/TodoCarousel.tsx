@@ -28,6 +28,7 @@ export default function TodoCarousel() {
   const handleEditTodo = (id: string) => {
     navigation.navigate('EditTodo', {
       todoId: id,
+      previewMode: 'calendar',
     });
   };
 
@@ -42,7 +43,9 @@ export default function TodoCarousel() {
         onEditTodo={handleEditTodo}
         onAddTodo={() => {
           Haptics.selectionAsync();
-          navigation.navigate('AddTodo');
+          navigation.navigate('AddTodo', {
+            previewMode: 'calendar',
+          });
         }}
       />
 

@@ -24,66 +24,21 @@ export default function SettingScreen({ navigation }: any) {
         <Text className="mt-6 text-3xl font-medium">설정</Text>
       </View>
 
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.content}
-        keyboardShouldPersistTaps="handled">
-        <SettingSection title="General" />
+      <View className="pb-10 pt-1">
+        <SettingSection title="일반" />
 
-        <SettingSection title="Account" />
+        <SettingSection title="계정" />
 
-        <SettingSection title="Feedback" />
-      </ScrollView>
+        <SettingSection title="피드백" />
+      </View>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-  },
-
   safeArea: {
     flex: 1,
   },
-
-  header: {
-    minHeight: 74,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-
-    paddingHorizontal: 28,
-    paddingTop: 22,
-    paddingBottom: 12,
-  },
-
-  title: {
-    color: '#222631',
-    fontSize: 26,
-    fontWeight: '700',
-    letterSpacing: -0.4,
-  },
-
-  closeButton: {
-    width: 36,
-    height: 36,
-    alignItems: 'center',
-    justifyContent: 'center',
-
-    borderRadius: 18,
-    backgroundColor: '#EAF6FF',
-  },
-
-  closeButtonPressed: {
-    opacity: 0.6,
-    transform: [
-      {
-        scale: 0.94,
-      },
-    ],
-  },
-
   content: {
     paddingTop: 4,
     paddingBottom: 40,

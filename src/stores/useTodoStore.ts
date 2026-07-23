@@ -31,7 +31,7 @@ type TodoStore = {
   toggleTodo: (id: string) => void;
   updateTodo: (id: string, changes: UpdateTodoInput) => void;
   removeTodo: (id: string) => void;
-  reorderTodos: (date: string, done: boolean, reorderedTodos: Todo[]) => void;
+  reorderTodos: (date: string, reorderedTodos: Todo[]) => void;
 };
 
 export const useTodoStore = create<TodoStore>()(
@@ -99,19 +99,18 @@ export const useTodoStore = create<TodoStore>()(
           todos: state.todos.filter((todo) => todo.id !== id),
         }));
       },
-      reorderTodos: (date, done, reorderedTodos) => {
+      reorderTodos: (date, reorderedTodos) => {
         set((state) => {
           let reorderedIndex = 0;
 
           return {
             todos: state.todos.map((todo) => {
-              const isTarget = todo.date === date && todo.done === done;
-
-              if (!isTarget) {
+              if (todo.date !== date) {
                 return todo;
               }
 
               const reorderedTodo = reorderedTodos[reorderedIndex];
+
               reorderedIndex += 1;
 
               return reorderedTodo ?? todo;
@@ -122,7 +121,22 @@ export const useTodoStore = create<TodoStore>()(
     }),
     {
       name: 'scheduly-todo-storage',
+
       storage: createJSONStorage(() => AsyncStorage),
+
+      partialize: (state) => ({
+        todos: state.todos,
+      }),
+
+      merge: (persistedState, currentState) => {
+        const persisted = persistedState as Partial<TodoStore>;
+
+        return {
+          ...currentState,
+          todos: persisted.todos ?? [],
+          selectedDate: '',
+        };
+      },
     }
   )
 );

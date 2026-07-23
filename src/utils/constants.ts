@@ -1,3 +1,5 @@
+import { type SFSymbol } from 'expo-symbols';
+
 export const TODO_COLORS = {
   red: {
     color: '#FF7474',
@@ -30,3 +32,62 @@ export const TODO_COLORS = {
 } as const;
 
 export type TodoColor = keyof typeof TODO_COLORS;
+
+export const TODO_ICONS: SFSymbol[] = [
+  // 기본
+  'checkmark.circle',
+  'calendar',
+  'clock',
+  'star',
+  'heart',
+
+  // 공부·업무
+  'book',
+  'graduationcap',
+  'pencil',
+  'briefcase',
+  'laptopcomputer',
+
+  // 집·청소
+  'house',
+  'sparkles',
+  'bubbles.and.sparkles',
+  'trash',
+
+  // 쇼핑
+  'cart',
+  'bag',
+  'creditcard',
+  'gift',
+
+  // 요리·식사
+  'fork.knife',
+  'cup.and.saucer',
+  'takeoutbag.and.cup.and.straw',
+  'birthday.cake',
+
+  // 영화·미디어
+  'film',
+  'tv',
+  'play.rectangle',
+  'headphones',
+  'music.note',
+  'gamecontroller',
+
+  // 운동·건강
+  'figure.run',
+  'dumbbell',
+  'cross.case',
+
+  // 이동·여행
+  'airplane',
+  'car',
+  'bus',
+  'tram',
+
+  // 약속·소통
+  'person.2',
+  'bubble.left',
+  'phone',
+  'party.popper',
+];

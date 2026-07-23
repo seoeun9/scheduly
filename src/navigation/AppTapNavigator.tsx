@@ -39,7 +39,7 @@ function TabIcon({ focused, icon, label }: TabIconProps) {
 export default function AppTabNavigator() {
   return (
     <Tab.Navigator
-      initialRouteName="Calendar"
+      initialRouteName="Todos"
       screenListeners={{
         tabPress: () => {
           void Haptics.selectionAsync();
