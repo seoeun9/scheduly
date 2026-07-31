@@ -6,7 +6,11 @@
     "experiments": {
       "tsconfigPaths": true
     },
-    "plugins": ["expo-font", "expo-secure-store"],
+    "plugins": [
+      "expo-font",
+      "expo-secure-store",
+      "@react-native-community/datetimepicker"
+    ],
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
     "splash": {
@@ -14,7 +18,9 @@
       "resizeMode": "contain",
       "backgroundColor": "#BFE6FB"
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": true
     }

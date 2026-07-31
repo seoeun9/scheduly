@@ -8,6 +8,8 @@ import SettingScreen from '@/screens/SettingScreen';
 import AppTabNavigator from './AppTapNavigator';
 import AddTodoScreen from '@/screens/AddTodoScreen';
 import EditTodoScreen from '@/screens/EditTodoScreen';
+import AddRoutineScreen from '@/screens/routine/AddRoutineScreen';
+import EditRoutineScreen from '@/screens/routine/EditRoutineScreen';
 
 export type RootStackParamList = {
   AuthWelcome: undefined;
@@ -23,6 +25,10 @@ export type RootStackParamList = {
   EditTodo: {
     todoId: string;
     previewMode?: 'calendar' | 'list';
+  };
+  AddRoutine: undefined;
+  EditRoutine: {
+    routineId: string;
   };
   AppTabs: undefined;
 };
@@ -88,6 +94,34 @@ export default function RootNavigator() {
       <Stack.Screen
         name="EditTodo"
         component={EditTodoScreen}
+        options={{
+          presentation: 'modal',
+          animation: 'slide_from_bottom',
+          gestureDirection: 'vertical',
+          headerShown: false,
+
+          contentStyle: {
+            backgroundColor: '#FFFFFF',
+          },
+        }}
+      />
+      <Stack.Screen
+        name="AddRoutine"
+        component={AddRoutineScreen}
+        options={{
+          presentation: 'modal',
+          animation: 'slide_from_bottom',
+          gestureDirection: 'vertical',
+          headerShown: false,
+
+          contentStyle: {
+            backgroundColor: '#FFFFFF',
+          },
+        }}
+      />
+      <Stack.Screen
+        name="EditRoutine"
+        component={EditRoutineScreen}
         options={{
           presentation: 'modal',
           animation: 'slide_from_bottom',

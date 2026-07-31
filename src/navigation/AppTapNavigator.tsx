@@ -8,13 +8,15 @@ import { Ionicons } from '@expo/vector-icons';
 import MainScreen from '@/screens/MainScreen';
 import TodoListScreen from '@/screens/TodoListScreen';
 import SettingScreen from '@/screens/SettingScreen';
-import * as Haptics from 'expo-haptics';
+import RoutineScreen from '@/screens/routine/RoutineScreen';
+import * as Haptics from '@/utils/haptics';
 import { useTheme } from '@/hooks/useTheme';
 
 export type AppTabParamList = {
   Calendar: undefined;
   Todos: undefined;
   Settings: undefined;
+  Routine: undefined;
 };
 
 const Tab = createBottomTabNavigator<AppTabParamList>();
@@ -110,6 +112,21 @@ export default function AppTabNavigator() {
       />
 
       <Tab.Screen
+        name="Routine"
+        component={RoutineScreen}
+        options={{
+          tabBarIcon: ({ focused }) => (
+            <TabIcon
+              focused={focused}
+              isDark={isDark}
+              icon={focused ? 'trophy' : 'trophy-outline'}
+              label="루틴"
+            />
+          ),
+        }}
+      />
+
+      <Tab.Screen
         name="Settings"
         component={SettingScreen}
         listeners={({ navigation }) => ({
@@ -136,6 +153,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 20,
     right: 20,
+    bottom: 5,
 
     height: 65,
     paddingTop: 7,

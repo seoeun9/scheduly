@@ -3,7 +3,7 @@
 // import { SafeAreaView } from 'react-native-safe-area-context';
 // import { Ionicons } from '@expo/vector-icons';
 // import { useTodoStore } from '@/stores/useTodoStore';
-// import * as Haptics from 'expo-haptics';
+// import * as Haptics from '@/utils/haptics';
 // import TodoCarousel from '@/components/TodoCarousel';
 
 // const WEEK_DAYS = ['월', '화', '수', '목', '금', '토', '일'];
@@ -506,6 +506,6 @@ const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
     paddingHorizontal: 24,
-    paddingTop: 22,
+    paddingTop: 18,
   },
 });

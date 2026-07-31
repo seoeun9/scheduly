@@ -13,8 +13,9 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { SymbolView, type SFSymbol } from 'expo-symbols';
-import * as Haptics from 'expo-haptics';
+import type { SFSymbol } from 'expo-symbols';
+import { AppSymbol } from '@/components/AppSymbol';
+import * as Haptics from '@/utils/haptics';
 import { useTodoStore } from '@/stores/useTodoStore';
 import { type TodoColor } from '@/types/todo';
 import { TODO_ICONS, TODO_COLORS } from '@/utils/constants';
@@ -159,7 +160,7 @@ export default function AddTodoScreen({ navigation, route }: any) {
 
             <View
               className={`flex-row items-center rounded-[20px] px-5 ${isDark ? 'bg-[#1A1A1A]' : 'bg-[#F4F4F4]'}`}>
-              <SymbolView
+              <AppSymbol
                 name={selectedIcon}
                 tintColor={selectedPaletteColor}
                 style={styles.titleIcon}
@@ -251,7 +252,7 @@ export default function AddTodoScreen({ navigation, route }: any) {
                               pressed && styles.optionPressed,
                             ]}
                             onPress={() => handleSelectIcon(icon)}>
-                            <SymbolView
+                            <AppSymbol
                               name={icon}
                               type="monochrome"
                               size={22}
@@ -311,7 +312,7 @@ export default function AddTodoScreen({ navigation, route }: any) {
                       pressed && styles.optionPressed,
                     ]}
                     onPress={() => handleSelectIcon(icon)}>
-                    <SymbolView
+                    <AppSymbol
                       name={icon}
                       tintColor={isSelected ? selectedPalette.color : '#777777'}
                       style={styles.symbol}
@@ -396,7 +397,7 @@ export default function AddTodoScreen({ navigation, route }: any) {
                     ? selectedPalette.darkBackgroundColor
                     : selectedPalette.backgroundColor,
                 }}>
-                <SymbolView
+                <AppSymbol
                   name={selectedIcon}
                   tintColor={selectedPaletteColor}
                   style={styles.previewIcon}
@@ -416,7 +417,7 @@ export default function AddTodoScreen({ navigation, route }: any) {
                 <View className="h-16 flex-row items-center px-3">
                   <View className="min-w-0 flex-1 flex-row items-center pr-3">
                     <View className="h-9 w-9 items-center justify-center">
-                      <SymbolView
+                      <AppSymbol
                         name={selectedIcon}
                         type="monochrome"
                         size={21}

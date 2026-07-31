@@ -1,7 +1,7 @@
 import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Animated, Easing, PanResponder, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
+import * as Haptics from '@/utils/haptics';
 import type { Todo } from '@/stores/useTodoStore';
 import { TODO_COLORS, type TodoColor } from '@/types/todo';
 import { useTheme } from '@/hooks/useTheme';
@@ -175,7 +175,7 @@ function CalendarPage({
                     !isSelected && { borderWidth: 1, borderColor: isDark ? '#DDDDDD' : '#111111' },
                 ]}>
                 <Text
-                  className="font-manrope"
+                  // className="font-manrope"
                   style={[
                     { color: isDark ? '#CCCCCC' : '#454545', fontSize: 14, fontWeight: '500' },
                     isSelected && { color: isDark ? '#000000' : '#FFFFFF', fontWeight: '700' },
@@ -494,11 +494,12 @@ const styles = StyleSheet.create({
   },
 
   dayCircle: {
-    width: 37,
-    height: 37,
+    width: 36,
+    height: 36,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 18.5,
+    borderRadius: 999,
+    overflow: 'hidden',
   },
 
   selectedDayCircle: {

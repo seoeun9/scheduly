@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Animated, Easing, View, Text, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
+import * as Haptics from '@/utils/haptics';
 import { useColorScheme } from 'nativewind';
 import { useThemeStore, ThemeMode } from '@/stores/themeStore';
 import { useTheme } from '@/hooks/useTheme';

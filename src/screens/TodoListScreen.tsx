@@ -3,8 +3,8 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Animated, Easing, Modal, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { SymbolView } from 'expo-symbols';
-import * as Haptics from 'expo-haptics';
+import { AppSymbol } from '@/components/AppSymbol';
+import * as Haptics from '@/utils/haptics';
 import { useTodoStore } from '@/stores/useTodoStore';
 import { TODO_COLORS } from '@/utils/constants';
 import { useTheme } from '@/hooks/useTheme';
@@ -15,6 +15,7 @@ import DraggableFlatList, {
 } from 'react-native-draggable-flatlist';
 
 import type { Todo } from '@/stores/useTodoStore';
+import { useToggleTodoCompletion } from '@/hooks/useToggleTodoCompletion';
 
 const WEEK_DAYS = ['월', '화', '수', '목', '금', '토', '일'];
 
@@ -63,17 +64,31 @@ function getWeekRangeText(weekDates: Date[]) {
   const firstDate = weekDates[0];
   const lastDate = weekDates[6];
 
+  const MS_PER_DAY = 24 * 60 * 60 * 1000;
+
+  const getWeekOfMonth = (date: Date) => {
+    const monthStart = new Date(date.getFullYear(), date.getMonth(), 1);
+    const monthStartWeek = getStartOfWeek(monthStart);
+    const targetWeek = getStartOfWeek(date);
+
+    const dayDiff = Math.round((targetWeek.getTime() - monthStartWeek.getTime()) / MS_PER_DAY);
+
+    return Math.floor(dayDiff / 7) + 1;
+  };
+
   const isSameMonth =
     firstDate.getFullYear() === lastDate.getFullYear() &&
     firstDate.getMonth() === lastDate.getMonth();
 
+  const firstWeek = getWeekOfMonth(firstDate);
+
   if (isSameMonth) {
-    return `${firstDate.getDate()}일 — ${lastDate.getDate()}일`;
+    return `${firstWeek}주차`;
   }
 
-  return `${firstDate.getMonth() + 1}월 ${firstDate.getDate()}일 — ${
-    lastDate.getMonth() + 1
-  }월 ${lastDate.getDate()}일`;
+  const lastWeek = getWeekOfMonth(lastDate);
+
+  return `${firstWeek}주차 (${lastDate.getMonth() + 1}월 ${lastWeek}주차)`;
 }
 
 type AnimatedTodoTitleProps = {
@@ -433,7 +448,7 @@ function CalendarPickerModal({
                       marginBottom: 10,
                       opacity: todo.done ? 0.45 : 1,
                     }}>
-                    <SymbolView
+                    <AppSymbol
                       name={todo.icon}
                       type="monochrome"
                       size={15}
@@ -466,14 +481,15 @@ export default function TodoListScreen({ navigation }: any) {
   const { isDark } = useTheme();
   const today = useMemo(() => new Date(), []);
   const [calendarModalVisible, setCalendarModalVisible] = useState(false);
+  const [listFilter, setListFilter] = useState<'all' | 'todo' | 'done'>('all');
+  const [filterOpen, setFilterOpen] = useState(false);
 
   const selectedDate = useTodoStore((state) => state.selectedDate);
 
   const setSelectedDate = useTodoStore((state) => state.setSelectedDate);
 
   const todos = useTodoStore((state) => state.todos);
-
-  const toggleTodo = useTodoStore((state) => state.toggleTodo);
+  const handleToggleTodo = useToggleTodoCompletion();
 
   const selectedDateObject = useMemo(() => fromDateKey(selectedDate), [selectedDate]);
 
@@ -482,6 +498,18 @@ export default function TodoListScreen({ navigation }: any) {
   const selectedTodos = useMemo(
     () => todos.filter((todo) => todo.date === selectedDate),
     [todos, selectedDate]
+  );
+
+  const filteredTodos = useMemo(
+    () =>
+      selectedTodos.filter((todo) => {
+        if (listFilter === 'all') {
+          return true;
+        }
+
+        return listFilter === 'todo' ? !todo.done : todo.done;
+      }),
+    [selectedTodos, listFilter]
   );
 
   const completedCount = useMemo(
@@ -527,11 +555,6 @@ export default function TodoListScreen({ navigation }: any) {
     });
   };
 
-  const handleToggleTodo = (id: string) => {
-    void Haptics.selectionAsync();
-    toggleTodo(id);
-  };
-
   const handleEditTodo = (id: string) => {
     void Haptics.selectionAsync();
 
@@ -543,13 +566,29 @@ export default function TodoListScreen({ navigation }: any) {
 
   const reorderTodos = useTodoStore((state) => state.reorderTodos);
 
-  const monthTitle = `${selectedDateObject.getFullYear()}년 ${selectedDateObject.getMonth() + 1}월`;
+  const previousMonthDate = new Date(
+    selectedDateObject.getFullYear(),
+    selectedDateObject.getMonth() - 1,
+    1
+  );
+
+  const hasPreviousMonthInWeek = weekDates.some(
+    (date) =>
+      date.getFullYear() === previousMonthDate.getFullYear() &&
+      date.getMonth() === previousMonthDate.getMonth()
+  );
+
+  const monthLabelDate = hasPreviousMonthInWeek ? previousMonthDate : selectedDateObject;
+
+  const monthTitle = `${monthLabelDate.getFullYear()}년 ${monthLabelDate.getMonth() + 1}월`;
 
   const selectedDateTitle = `${
     selectedDateObject.getMonth() + 1
   }월 ${selectedDateObject.getDate()}일 ${
     WEEK_DAYS[selectedDateObject.getDay() === 0 ? 6 : selectedDateObject.getDay() - 1]
   }요일`;
+
+  const filterLabel = listFilter === 'all' ? 'All' : listFilter === 'todo' ? 'Todo' : 'Done';
 
   return (
     <SafeAreaView className={`flex-1 ${isDark ? 'bg-black' : 'bg-white'}`} edges={['top']}>
@@ -595,7 +634,7 @@ export default function TodoListScreen({ navigation }: any) {
           </Pressable>
         </View>
 
-        <View className="mt-4 flex-row">
+        <View className="mt-3 flex-row">
           {WEEK_DAYS.map((day) => (
             <View key={day} className="flex-1 items-center">
               <Text className="text-sm text-[#A5A5A5]">{day}</Text>
@@ -634,7 +673,7 @@ export default function TodoListScreen({ navigation }: any) {
           })}
         </View>
 
-        <View className="mb-5 mt-5">
+        <View className="mb-3 mt-4">
           <View className="flex-row items-center justify-between">
             <View className="justify-center gap-1">
               <Text className={`text-[15px] font-bold ${isDark ? 'text-white' : 'text-black'}`}>
@@ -646,12 +685,75 @@ export default function TodoListScreen({ navigation }: any) {
               </Text>
             </View>
 
-            <Pressable
-              className={`h-10 w-10 items-center justify-center rounded-full active:scale-95 active:opacity-70 ${isDark ? 'bg-[#DDDDDD]' : 'bg-black'}`}
-              onPress={handleAddTodo}
-              hitSlop={7}>
-              <Ionicons name="add" size={25} color={isDark ? '#000000' : '#FFFFFF'} />
-            </Pressable>
+            <View className="flex-row items-center gap-2">
+              <View className="relative">
+                <Pressable
+                  className={`h-8 min-w-[74px] flex-row items-center justify-center rounded-full px-3 ${
+                    isDark ? 'bg-[#1F1F1F]' : 'bg-[#F1F1F1]'
+                  }`}
+                  onPress={() => {
+                    void Haptics.selectionAsync();
+                    setFilterOpen((current) => !current);
+                  }}>
+                  <Text
+                    className={`text-[11px] font-semibold ${isDark ? 'text-[#E5E5E5]' : 'text-[#4B4B4B]'}`}>
+                    {filterLabel}
+                  </Text>
+                  <Ionicons
+                    name={filterOpen ? 'chevron-up' : 'chevron-down'}
+                    size={12}
+                    color={isDark ? '#D0D0D0' : '#666666'}
+                    style={{ marginLeft: 4 }}
+                  />
+                </Pressable>
+
+                {filterOpen && (
+                  <View
+                    className={`absolute right-0 top-10 z-20 w-[110px] rounded-2xl border p-1 ${
+                      isDark ? 'border-[#2A2A2A] bg-[#101010]' : 'border-[#E6E6E6] bg-white'
+                    }`}>
+                    {(['all', 'todo', 'done'] as const).map((option) => {
+                      const optionLabel =
+                        option === 'all' ? 'All' : option === 'todo' ? 'Todo' : 'Done';
+                      const selected = listFilter === option;
+
+                      return (
+                        <Pressable
+                          key={option}
+                          className={`h-8 flex-row items-center rounded-xl px-2 ${
+                            selected ? (isDark ? 'bg-[#2A2A2A]' : 'bg-[#F3F3F3]') : 'bg-transparent'
+                          }`}
+                          onPress={() => {
+                            void Haptics.selectionAsync();
+                            setListFilter(option);
+                            setFilterOpen(false);
+                          }}>
+                          <Text
+                            className={`text-xs font-semibold ${
+                              selected
+                                ? isDark
+                                  ? 'text-white'
+                                  : 'text-[#202020]'
+                                : isDark
+                                  ? 'text-[#BDBDBD]'
+                                  : 'text-[#727272]'
+                            }`}>
+                            {optionLabel}
+                          </Text>
+                        </Pressable>
+                      );
+                    })}
+                  </View>
+                )}
+              </View>
+
+              <Pressable
+                className={`h-10 w-10 items-center justify-center rounded-full active:scale-95 active:opacity-70 ${isDark ? 'bg-[#DDDDDD]' : 'bg-black'}`}
+                onPress={handleAddTodo}
+                hitSlop={7}>
+                <Ionicons name="add" size={25} color={isDark ? '#000000' : '#FFFFFF'} />
+              </Pressable>
+            </View>
           </View>
         </View>
 
@@ -691,7 +793,7 @@ export default function TodoListScreen({ navigation }: any) {
                 onPress={() => handleEditTodo(item.id)}>
                 <AnimatedTodoContent done={item.done}>
                   <View className="h-9 w-9 items-center justify-center">
-                    <SymbolView
+                    <AppSymbol
                       name={item.icon}
                       type="monochrome"
                       size={21}
@@ -712,7 +814,7 @@ export default function TodoListScreen({ navigation }: any) {
           }}
         /> */}
         <DraggableFlatList
-          data={selectedTodos}
+          data={filteredTodos}
           keyExtractor={(item) => item.id}
           showsVerticalScrollIndicator={false}
           dragItemOverflow
@@ -724,7 +826,7 @@ export default function TodoListScreen({ navigation }: any) {
           }}
           contentContainerStyle={{
             flexGrow: 1,
-            paddingBottom: 120,
+            paddingBottom: 70,
           }}
           animationConfig={{
             damping: 24,
@@ -732,12 +834,19 @@ export default function TodoListScreen({ navigation }: any) {
             mass: 0.5,
           }}
           onDragEnd={({ data }) => {
-            reorderTodos(selectedDate, data);
+            if (listFilter === 'all') {
+              reorderTodos(selectedDate, data);
+            } else {
+              const untouched = selectedTodos.filter((todo) =>
+                listFilter === 'todo' ? todo.done : !todo.done
+              );
+
+              reorderTodos(selectedDate, [...data, ...untouched]);
+            }
+
             void Haptics.selectionAsync();
           }}
-          ItemSeparatorComponent={() => (
-            <View className={`ml-12 h-px ${isDark ? 'bg-[#2A2A2A]' : 'bg-[#EEEEEE]'}`} />
-          )}
+          ItemSeparatorComponent={() => <View className="h-2" />}
           ListEmptyComponent={
             <View className="flex-1 items-center justify-center pb-28">
               <View
@@ -759,6 +868,10 @@ export default function TodoListScreen({ navigation }: any) {
             const palette = TODO_COLORS[item.color ?? 'blue'];
             const paletteColor =
               'color' in palette ? palette.color : isDark ? palette.darkColor : palette.lightColor;
+            const paletteBackground = isDark
+              ? palette.darkBackgroundColor
+              : palette.backgroundColor;
+            const titleColor = item.done ? paletteColor : isDark ? '#F3F3F3' : '#1F2430';
 
             const handleLongPress = () => {
               void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -769,21 +882,32 @@ export default function TodoListScreen({ navigation }: any) {
             return (
               <ScaleDecorator activeScale={1.025}>
                 <Pressable
-                  className="h-16 flex-row items-center rounded-[18px] px-3"
+                  className="h-[45px] flex-row items-center rounded-[20px] px-4"
                   style={({ pressed }) => ({
-                    backgroundColor: isActive ? (isDark ? '#1E1E1E' : '#FAFAFA') : 'transparent',
+                    backgroundColor: isActive
+                      ? isDark
+                        ? '#1E1E1E'
+                        : '#F7F7F7'
+                      : item.done
+                        ? paletteBackground
+                        : isDark
+                          ? '#111111'
+                          : '#FFFFFF',
+
+                    borderWidth: 1,
+                    borderColor: item.done ? `${paletteColor}44` : isDark ? '#242424' : '#EDEDED',
 
                     opacity: pressed && !isActive ? 0.55 : 1,
 
                     shadowColor: '#000000',
                     shadowOffset: {
                       width: 0,
-                      height: isActive ? 4 : 0,
+                      height: isActive ? 4 : 2,
                     },
-                    shadowOpacity: isActive ? 0.09 : 0,
-                    shadowRadius: isActive ? 9 : 0,
+                    shadowOpacity: isActive ? 0.09 : isDark ? 0 : 0.04,
+                    shadowRadius: isActive ? 9 : 6,
 
-                    elevation: isActive ? 4 : 0,
+                    elevation: isActive ? 4 : 1,
                   })}
                   onPress={() => handleEditTodo(item.id)}
                   onLongPress={handleLongPress}
@@ -791,7 +915,7 @@ export default function TodoListScreen({ navigation }: any) {
                   disabled={isActive}>
                   <AnimatedTodoContent done={item.done}>
                     <View className="h-9 w-9 items-center justify-center">
-                      <SymbolView
+                      <AppSymbol
                         name={item.icon}
                         type="monochrome"
                         size={21}
@@ -799,8 +923,32 @@ export default function TodoListScreen({ navigation }: any) {
                       />
                     </View>
 
-                    <AnimatedTodoTitle title={item.title} done={item.done} color={paletteColor} />
+                    <AnimatedTodoTitle title={item.title} done={item.done} color={titleColor} />
                   </AnimatedTodoContent>
+
+                  <View
+                    className={`mr-2 rounded-full px-2 py-1 ${
+                      item.done
+                        ? isDark
+                          ? 'bg-[#FFFFFF1A]'
+                          : 'bg-[#FFFFFFB3]'
+                        : isDark
+                          ? 'bg-[#1E1E1E]'
+                          : 'bg-[#F2F2F2]'
+                    }`}
+                    style={
+                      item.done
+                        ? {
+                            backgroundColor: `${paletteColor}${isDark ? '2B' : '24'}`,
+                          }
+                        : undefined
+                    }>
+                    <Text
+                      style={{ color: item.done ? paletteColor : isDark ? '#9C9C9C' : '#8A8A8A' }}
+                      className="text-[10px] font-bold">
+                      {item.done ? 'DONE' : 'TODO'}
+                    </Text>
+                  </View>
 
                   <RainbowCompleteButton
                     done={item.done}

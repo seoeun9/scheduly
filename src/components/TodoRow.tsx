@@ -2,9 +2,9 @@ import { Animated, FlatList, Pressable, Text, View } from 'react-native';
 import { useRef } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import type { Todo } from '@/stores/useTodoStore';
-import { SymbolView } from 'expo-symbols';
+import { AppSymbol } from '@/components/AppSymbol';
 import { TODO_COLORS } from '@/utils/constants';
-import * as Haptics from 'expo-haptics';
+import * as Haptics from '@/utils/haptics';
 
 type TodoRowProps = {
   title: string;
@@ -69,7 +69,7 @@ function TodoCard({ item, isDark, onPress, onLongPress }: TodoCardProps) {
         onLongPress={onLongPress}
         delayLongPress={300}>
         <View className="mr-3 h-7 items-center justify-center">
-          <SymbolView name={item.icon} type="monochrome" size={15} tintColor={paletteColor} />
+          <AppSymbol name={item.icon} type="monochrome" size={15} tintColor={paletteColor} />
         </View>
 
         <Text
@@ -105,7 +105,7 @@ export function TodoRow({
     <View className="h-[90px]">
       <View className="mb-4 flex-row items-center">
         <Text
-          className={`font-manrope text-2xl font-medium ${
+          className={`text-2xl font-medium ${
             completed ? (isDark ? 'text-white' : 'text-black') : 'text-[#909090]'
           }`}>
           {todos.length}{' '}

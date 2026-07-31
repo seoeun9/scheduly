@@ -11,7 +11,19 @@ export type Todo = {
   done: boolean;
   color: TodoColor;
   icon: SFSymbol;
+  routineId?: string;
 };
+
+type RoutineTodoInput = {
+  routineId: string;
+  date: string;
+  title: string;
+  color: TodoColor;
+  icon: SFSymbol;
+  done: boolean;
+};
+
+type RoutineTodoChanges = Partial<Pick<Todo, 'title' | 'color' | 'icon'>>;
 
 type AddTodoInput = {
   title: string;
@@ -32,6 +44,11 @@ type TodoStore = {
   updateTodo: (id: string, changes: UpdateTodoInput) => void;
   removeTodo: (id: string) => void;
   reorderTodos: (date: string, reorderedTodos: Todo[]) => void;
+  addRoutineTodos: (inputs: RoutineTodoInput[]) => void;
+  updateRoutineTodos: (routineId: string, changes: RoutineTodoChanges) => void;
+  removeRoutineTodos: (routineId: string) => void;
+
+  removeFutureRoutineTodos: (routineId: string, fromDate: string) => void;
 };
 
 export const useTodoStore = create<TodoStore>()(
@@ -117,6 +134,57 @@ export const useTodoStore = create<TodoStore>()(
             }),
           };
         });
+      },
+      addRoutineTodos: (inputs) => {
+        set((state) => {
+          const existingKeys = new Set(
+            state.todos
+              .filter((todo) => todo.routineId)
+              .map((todo) => `${todo.routineId}:${todo.date}`)
+          );
+
+          const newTodos: Todo[] = inputs
+            .filter((input) => !existingKeys.has(`${input.routineId}:${input.date}`))
+            .map((input) => ({
+              id: `routine-${input.routineId}-${input.date}`,
+
+              routineId: input.routineId,
+
+              date: input.date,
+              title: input.title,
+              color: input.color,
+              icon: input.icon,
+
+              done: input.done,
+            }));
+
+          return {
+            todos: [...state.todos, ...newTodos],
+          };
+        });
+      },
+      updateRoutineTodos: (routineId, changes) => {
+        set((state) => ({
+          todos: state.todos.map((todo) =>
+            todo.routineId === routineId
+              ? {
+                  ...todo,
+                  ...changes,
+                }
+              : todo
+          ),
+        }));
+      },
+      removeRoutineTodos: (routineId) => {
+        set((state) => ({
+          todos: state.todos.filter((todo) => todo.routineId !== routineId),
+        }));
+      },
+
+      removeFutureRoutineTodos: (routineId, fromDate) => {
+        set((state) => ({
+          todos: state.todos.filter((todo) => todo.routineId !== routineId || todo.date < fromDate),
+        }));
       },
     }),
     {
