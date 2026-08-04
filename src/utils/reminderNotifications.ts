@@ -79,8 +79,8 @@ async function scheduleTodayReminder(date: Date, remainingCount: number) {
 
   return Notifications.scheduleNotificationAsync({
     content: {
-      title: '오늘 할 일이 남아 있어요',
-      body: `아직 완료하지 않은 할 일이 ${remainingCount}개 있어요.`,
+      title: '리마인드',
+      body: `오늘 할 일이 ${remainingCount}개 남아 있어요.`,
       sound: 'default',
       data: {
         screen: 'TodoList',

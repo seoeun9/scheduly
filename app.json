@@ -1,8 +1,9 @@
 {
   "expo": {
-    "name": "Scheduly",
+    "name": "스케줄리",
     "slug": "scheduly",
     "version": "1.0.0",
+    "icon": "./src/assets/icon.png",
     "experiments": {
       "tsconfigPaths": true
     },
@@ -10,19 +11,32 @@
       "expo-font",
       "expo-secure-store",
       "@react-native-community/datetimepicker",
-      "expo-notifications"
+      "expo-notifications",
+      "./plugins/withAndroidGradleMemory"
     ],
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
     "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true,
+      "bundleIdentifier": "com.scheduly",
       "infoPlist": {
         "NSUserNotificationsUsageDescription": "남은 할 일을 알려드리기 위해 알림을 사용합니다."
       }
     },
     "android": {
-      "package": "com.scheduly"
+      "package": "com.scheduly",
+      "permissions": ["SCHEDULE_EXACT_ALARM"],
+      "versionCode": 1,
+      "adaptiveIcon": {
+        "foregroundImage": "./src/assets/adaptive-icon.png",
+        "backgroundColor": "#FFFFFF"
+      }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "118768d5-cdde-4d45-9198-42f5c9174cbc"
+      }
     }
   }
 }

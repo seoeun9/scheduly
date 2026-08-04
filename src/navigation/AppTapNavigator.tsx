@@ -69,6 +69,7 @@ function TabIcon({
 export default function AppTabNavigator() {
   const { isDark } = useTheme();
   const insets = useSafeAreaInsets();
+  const tabBarBottom = Math.max(insets.bottom - 4, 5);
 
   return (
     <Tab.Navigator
@@ -87,10 +88,7 @@ export default function AppTabNavigator() {
           styles.tabBar,
           {
             backgroundColor: isDark ? '#111111' : '#FFFFFF',
-            // shadowColor: isDark ? '#000000' : '#6D9AB5',
-            // shadowOpacity: isDark ? 0.5 : 0.16,
-            paddingBottom: Math.max(insets.bottom, 8),
-            height: 76 + Math.max(insets.bottom - 8, 0),
+            bottom: tabBarBottom,
           },
         ],
         tabBarItemStyle: styles.tabBarItem,

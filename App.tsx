@@ -2,7 +2,8 @@
 import { useEffect } from 'react';
 import { AppState } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
+import * as SplashScreen from 'expo-splash-screen';
+import { SafeAreaProvider, initialWindowMetrics } from 'react-native-safe-area-context';
 import { useFonts } from 'expo-font';
 import './global.css';
 import { NavigationContainer } from '@react-navigation/native';
@@ -12,6 +13,8 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useReminderSettingsStore } from '@/stores/reminderSettingsStore';
 import { useTodoStore } from '@/stores/useTodoStore';
 import { syncTodoReminderNotification } from '@/utils/reminderNotifications';
+
+SplashScreen.preventAutoHideAsync();
 
 export default function App() {
   const [fontsLoaded] = useFonts({});
@@ -62,11 +65,17 @@ export default function App() {
     };
   }, []);
 
+  useEffect(() => {
+    if (fontsLoaded) {
+      void SplashScreen.hideAsync();
+    }
+  }, [fontsLoaded]);
+
   if (!fontsLoaded) return null;
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <SafeAreaProvider>
+      <SafeAreaProvider initialMetrics={initialWindowMetrics}>
         <ToastProvider>
           <NavigationContainer>
             <RootNavigator />
