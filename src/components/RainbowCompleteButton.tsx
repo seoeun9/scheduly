@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
-import { Animated, Easing, Pressable, View } from 'react-native';
+import { Animated, Easing, Pressable, View, useColorScheme } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { TODO_COLORS } from '@/utils/constants';
 
 const SPARKS = [
   { index: 0, color: '#FF7474' },
@@ -25,6 +26,10 @@ export default function RainbowCompleteButton({
   onPress,
 }: RainbowCompleteButtonProps) {
   const paletteColor = color || '#4AB4FF';
+  const colorScheme = useColorScheme();
+  const isDarkMode = colorScheme === 'dark';
+  const isGrayTheme = paletteColor.toLowerCase() === TODO_COLORS.gray.darkColor.toLowerCase();
+  const checkColor = isGrayTheme && isDarkMode ? '#1A1A1A' : '#FFFFFF';
 
   const sparkProgress = useRef(new Animated.Value(0)).current;
   const buttonScale = useRef(new Animated.Value(1)).current;
@@ -171,39 +176,27 @@ export default function RainbowCompleteButton({
                     style={{
                       width: 24,
                       height: 24,
+                      borderRadius: 12,
 
                       alignItems: 'center',
                       justifyContent: 'center',
 
+                      // 완료 전: 회색 테두리 원
+                      // 완료 후: 선택한 색으로 채워진 원
+                      borderWidth: 2,
                       borderColor: done ? paletteColor : '#B7B7B7',
-
-                      overflow: 'visible',
+                      backgroundColor: done ? paletteColor : 'transparent',
                     }}>
-                    <Animated.View
-                      style={{
-                        alignItems: 'center',
-                        justifyContent: 'center',
-
-                        opacity: checkOpacity,
-
-                        transform: [
-                          {
-                            translateX: 1,
-                          },
-                          {
-                            translateY: -3,
-                          },
-                          {
-                            rotate: '-8deg',
-                          },
-                        ],
-                      }}>
-                      <Ionicons
-                        name="checkmark-done"
-                        size={28}
-                        color={done ? paletteColor : '#B7B7B7'}
-                      />
-                    </Animated.View>
+                    {done && (
+                      <Animated.View
+                        style={{
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          opacity: checkOpacity,
+                        }}>
+                        <Ionicons name="checkmark" color={checkColor} size={17} />
+                      </Animated.View>
+                    )}
                   </View>
                 </View>
               );

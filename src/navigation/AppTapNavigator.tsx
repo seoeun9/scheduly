@@ -4,6 +4,7 @@ import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import MainScreen from '@/screens/MainScreen';
 import TodoListScreen from '@/screens/TodoListScreen';
@@ -26,24 +27,38 @@ type TabIconProps = {
   isDark: boolean;
   icon: keyof typeof Ionicons.glyphMap;
   label: string;
+  accentColor: string;
+  activeBackgroundColor: string;
 };
 
-function TabIcon({ focused, isDark, icon, label }: TabIconProps) {
+function TabIcon({
+  focused,
+  isDark,
+  icon,
+  label,
+  accentColor,
+  activeBackgroundColor,
+}: TabIconProps) {
+  const activeColor = accentColor;
+  const inactiveColor = isDark ? '#777777' : '#929292';
+
   return (
-    <View className="flex w-[100px] items-center pt-3">
-      <View>
-        <Ionicons
-          name={icon}
-          size={21}
-          color={focused ? (isDark ? '#FFFFFF' : '#111111') : isDark ? '#555555' : '#818181'}
-        />
+    <View style={styles.tabContent}>
+      <View
+        style={[
+          styles.iconContainer,
+          focused && {
+            backgroundColor: isDark ? '#292929' : activeBackgroundColor,
+          },
+        ]}>
+        <Ionicons name={icon} size={22} color={focused ? activeColor : inactiveColor} />
       </View>
 
       <Text
         style={[
           styles.tabLabel,
-          { color: isDark ? '#555555' : '#818181' },
-          focused && { color: isDark ? '#FFFFFF' : '#111111', fontWeight: '700' },
+          { color: focused ? activeColor : inactiveColor },
+          focused && styles.activeTabLabel,
         ]}>
         {label}
       </Text>
@@ -53,6 +68,7 @@ function TabIcon({ focused, isDark, icon, label }: TabIconProps) {
 
 export default function AppTabNavigator() {
   const { isDark } = useTheme();
+  const insets = useSafeAreaInsets();
 
   return (
     <Tab.Navigator
@@ -71,8 +87,10 @@ export default function AppTabNavigator() {
           styles.tabBar,
           {
             backgroundColor: isDark ? '#111111' : '#FFFFFF',
-            shadowColor: isDark ? '#000000' : '#6D9AB5',
-            shadowOpacity: isDark ? 0.5 : 0.16,
+            // shadowColor: isDark ? '#000000' : '#6D9AB5',
+            // shadowOpacity: isDark ? 0.5 : 0.16,
+            paddingBottom: Math.max(insets.bottom, 8),
+            height: 76 + Math.max(insets.bottom - 8, 0),
           },
         ],
         tabBarItemStyle: styles.tabBarItem,
@@ -89,8 +107,10 @@ export default function AppTabNavigator() {
             <TabIcon
               focused={focused}
               isDark={isDark}
-              icon={focused ? 'calendar' : 'calendar-outline'}
+              icon={focused ? 'today' : 'today-outline'}
               label="캘린더"
+              accentColor="#E56B6F"
+              activeBackgroundColor="#FFF0F0"
             />
           ),
         }}
@@ -104,8 +124,10 @@ export default function AppTabNavigator() {
             <TabIcon
               focused={focused}
               isDark={isDark}
-              icon={focused ? 'list' : 'list-outline'}
+              icon={focused ? 'reader' : 'reader-outline'}
               label="리스트"
+              accentColor="#5686D8"
+              activeBackgroundColor="#EEF4FF"
             />
           ),
         }}
@@ -119,8 +141,10 @@ export default function AppTabNavigator() {
             <TabIcon
               focused={focused}
               isDark={isDark}
-              icon={focused ? 'trophy' : 'trophy-outline'}
+              icon={focused ? 'flag' : 'flag-outline'}
               label="루틴"
+              accentColor="#D38B26"
+              activeBackgroundColor="#FFF5E5"
             />
           ),
         }}
@@ -140,7 +164,14 @@ export default function AppTabNavigator() {
         })}
         options={{
           tabBarIcon: ({ focused }) => (
-            <TabIcon focused={focused} isDark={isDark} icon="settings-outline" label="설정" />
+            <TabIcon
+              focused={focused}
+              isDark={isDark}
+              icon={focused ? 'settings' : 'settings-outline'}
+              label="설정"
+              accentColor="#8B72C8"
+              activeBackgroundColor="#F4F0FF"
+            />
           ),
         }}
       />
@@ -155,9 +186,9 @@ const styles = StyleSheet.create({
     right: 20,
     bottom: 5,
 
-    height: 65,
+    height: 76,
     paddingTop: 7,
-    paddingBottom: 7,
+    paddingBottom: 8,
 
     borderTopWidth: 0,
     borderRadius: 22,
@@ -177,15 +208,25 @@ const styles = StyleSheet.create({
   tabBarItem: {
     height: 58,
   },
+  tabContent: {
+    width: 72,
+    alignItems: 'center',
+    paddingTop: 20,
+  },
+  iconContainer: {
+    width: 42,
+    height: 30,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 15,
+  },
   tabLabel: {
-    marginTop: 7,
-    color: '#818181',
-    fontSize: 10,
+    marginTop: 4,
+    fontSize: 10.5,
     fontWeight: '500',
   },
 
   activeTabLabel: {
-    color: '#111111',
     fontWeight: '700',
   },
 });

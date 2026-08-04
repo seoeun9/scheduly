@@ -176,6 +176,11 @@ export default function TodoCarousel() {
     navigation.navigate('Todos');
   };
 
+  const formatDate = (date: string) => {
+    const [, month, day] = date.split('-').map(Number);
+    return `${month}월 ${day}일`;
+  };
+
   // const handleCloseDetail = () => {
   //   void Haptics.selectionAsync();
   //   setDetailVisible(false);
@@ -198,19 +203,19 @@ export default function TodoCarousel() {
         }`}>
         <View className="flex-row items-center justify-between">
           <Text className={`text-[16px] font-semibold ${isDark ? 'text-white' : 'text-[#181A21]'}`}>
-            오늘 할 일 요약
+            {formatDate(selectedDate)} 할 일 요약
           </Text>
 
           <Pressable
             className={`h-9 flex-row items-center rounded-full px-3 ${
-              isDark ? 'bg-white' : 'bg-black'
+              isDark ? 'bg-[#F4F4F4]' : 'bg-[#212121]'
             }`}
             style={({ pressed }) => ({
               opacity: pressed ? 0.72 : 1,
               transform: [{ scale: pressed ? 0.96 : 1 }],
             })}
             onPress={handleOpenDetail}>
-            <Text className={`text-xs font-semibold ${isDark ? 'text-black' : 'text-white'}`}>
+            <Text className={`text-xs font-semibold ${isDark ? 'text-black' : 'text-[#F4F4F4]'}`}>
               자세히 보기
             </Text>
             <Ionicons

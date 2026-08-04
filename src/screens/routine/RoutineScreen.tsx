@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useCallback, useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation, type NavigationProp } from '@react-navigation/native';
+import { useFocusEffect, useNavigation, type NavigationProp } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Haptics from '@/utils/haptics';
 
 import { useTheme } from '@/hooks/useTheme';
@@ -10,6 +11,12 @@ import { TODO_COLORS } from '@/types/todo';
 import type { RootStackParamList } from '@/navigation/RootNavigator';
 import { useRoutineStore, type Routine } from '@/stores/RoutineStore';
 import { AppSymbol } from '@/components/AppSymbol';
+
+const ROUTINE_QUOTE_TEXT_KEY = 'routine-quote-text';
+const ROUTINE_QUOTE_AUTHOR_KEY = 'routine-quote-author';
+
+const DEFAULT_ROUTINE_QUOTE_TEXT = '습관이란 인간으로 하여금\n어떤 일이든 하게 만든다.';
+const DEFAULT_ROUTINE_QUOTE_AUTHOR = '도스토예프스키';
 
 function formatDate(date: string) {
   const [, month, day] = date.split('-');
@@ -61,11 +68,7 @@ function RoutineCard({ routine, isDark, onPress }: RoutineCardProps) {
       }`}
       style={({ pressed }) => ({
         opacity: pressed ? 0.62 : 1,
-        transform: [
-          {
-            scale: pressed ? 0.99 : 1,
-          },
-        ],
+        transform: [{ scale: pressed ? 0.99 : 1 }],
       })}
       onPress={onPress}>
       <View
@@ -90,11 +93,7 @@ function RoutineCard({ routine, isDark, onPress }: RoutineCardProps) {
         </Text>
 
         <View className="mt-2 flex-row items-center">
-          <Text
-            className="text-xs font-semibold"
-            style={{
-              color: palette.color,
-            }}>
+          <Text className="text-xs font-semibold" style={{ color: palette.color }}>
             지금까지 {completedCount}회 완료
           </Text>
         </View>
@@ -113,11 +112,33 @@ function RoutineCard({ routine, isDark, onPress }: RoutineCardProps) {
 export default function RoutineScreen() {
   const { isDark } = useTheme();
   const routines = useRoutineStore((state) => state.routines);
-
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
 
+  const [quoteText, setQuoteText] = useState(DEFAULT_ROUTINE_QUOTE_TEXT);
+  const [quoteAuthor, setQuoteAuthor] = useState(DEFAULT_ROUTINE_QUOTE_AUTHOR);
+
+  useFocusEffect(
+    useCallback(() => {
+      const loadQuote = async () => {
+        try {
+          const [savedQuoteText, savedQuoteAuthor] = await Promise.all([
+            AsyncStorage.getItem(ROUTINE_QUOTE_TEXT_KEY),
+            AsyncStorage.getItem(ROUTINE_QUOTE_AUTHOR_KEY),
+          ]);
+
+          setQuoteText(savedQuoteText || DEFAULT_ROUTINE_QUOTE_TEXT);
+          setQuoteAuthor(savedQuoteAuthor || DEFAULT_ROUTINE_QUOTE_AUTHOR);
+        } catch (error) {
+          console.log(error);
+        }
+      };
+
+      void loadQuote();
+    }, [])
+  );
+
   const handleAddRoutine = () => {
-    Haptics.selectionAsync();
+    void Haptics.selectionAsync();
     navigation.navigate('AddRoutine');
   };
 
@@ -129,12 +150,18 @@ export default function RoutineScreen() {
     });
   };
 
+  const handleEditQuote = () => {
+    void Haptics.selectionAsync();
+    navigation.navigate('EditRoutineQuote');
+  };
+
   return (
     <SafeAreaView className={`flex-1 ${isDark ? 'bg-black' : 'bg-white'}`} edges={['top']}>
-      <View className="pb-30 flex-1 px-8 pt-7">
+      <View className="pb-30 flex-1 px-8 pt-8">
         <View className="flex-row items-center justify-between">
           <View>
-            <Text className={`text-[26px] font-bold ${isDark ? 'text-white' : 'text-[#181A21]'}`}>
+            <Text
+              className={`pt-5 text-[26px] font-bold ${isDark ? 'text-white' : 'text-[#181A21]'}`}>
               나의 루틴
             </Text>
 
@@ -145,15 +172,11 @@ export default function RoutineScreen() {
 
           <Pressable
             className={`h-10 w-10 items-center justify-center rounded-full ${
-              isDark ? 'bg-white' : 'bg-black'
+              isDark ? 'bg-[#F4F4F4]' : 'bg-[#212121]'
             }`}
             style={({ pressed }) => ({
               opacity: pressed ? 0.6 : 1,
-              transform: [
-                {
-                  scale: pressed ? 0.94 : 1,
-                },
-              ],
+              transform: [{ scale: pressed ? 0.94 : 1 }],
             })}
             onPress={handleAddRoutine}
             hitSlop={8}>
@@ -161,22 +184,22 @@ export default function RoutineScreen() {
           </Pressable>
         </View>
 
-        <View
-          className={`mt-7 rounded-[22px] px-6 py-6 ${isDark ? 'bg-[#161616]' : 'bg-[#F5F5F5]'}`}>
-          <Text className={`text-3xl ${isDark ? 'text-white' : 'text-[#181A21]'}`}>“</Text>
+        <Pressable
+          className={`mt-7 rounded-[22px] px-6 py-6 ${isDark ? 'bg-[#161616]' : 'bg-[#F5F5F5]'}`}
+          onPress={handleEditQuote}>
+          <Text className={`text-3xl ${isDark ? 'text-[#F4F4F4]' : 'text-[#212121]'}`}>“</Text>
 
           <Text
             className={`mt-2 text-[20px] font-medium leading-8 ${
-              isDark ? 'text-white' : 'text-[#181A21]'
+              isDark ? 'text-[#F4F4F4]' : 'text-[#212121]'
             }`}>
-            작은 반복이 결국{'\n'}
-            나를 만든다.
+            {quoteText}
           </Text>
 
           <Text className={`mt-3 text-xs ${isDark ? 'text-[#777777]' : 'text-[#969696]'}`}>
-            — 작자 미상
+            — {quoteAuthor}
           </Text>
-        </View>
+        </Pressable>
 
         {routines.length === 0 ? (
           <View className="flex-1 items-center justify-center pb-16">
@@ -189,7 +212,7 @@ export default function RoutineScreen() {
 
             <Text
               className={`mt-5 text-[17px] font-semibold ${
-                isDark ? 'text-white' : 'text-[#181A21]'
+                isDark ? 'text-[#F4F4F4]' : 'text-[#212121]'
               }`}>
               아직 루틴이 없어요
             </Text>
@@ -204,21 +227,19 @@ export default function RoutineScreen() {
 
             <Pressable
               className={`mt-6 flex-row items-center rounded-full px-5 py-3 ${
-                isDark ? 'bg-white' : 'bg-black'
+                isDark ? 'bg-[#F4F4F4]' : 'bg-[#212121]'
               }`}
               style={({ pressed }) => ({
                 opacity: pressed ? 0.65 : 1,
-                transform: [
-                  {
-                    scale: pressed ? 0.96 : 1,
-                  },
-                ],
+                transform: [{ scale: pressed ? 0.96 : 1 }],
               })}
               onPress={handleAddRoutine}>
               <Ionicons name="add" size={17} color={isDark ? '#000000' : '#FFFFFF'} />
 
               <Text
-                className={`ml-2 text-sm font-semibold ${isDark ? 'text-black' : 'text-white'}`}>
+                className={`ml-2 text-sm font-semibold ${
+                  isDark ? 'text-[#212121]' : 'text-[#F4F4F4]'
+                }`}>
                 첫 루틴 만들기
               </Text>
             </Pressable>
@@ -227,7 +248,7 @@ export default function RoutineScreen() {
           <>
             <Text
               className={`mb-4 mt-8 text-[17px] font-semibold ${
-                isDark ? 'text-white' : 'text-[#181A21]'
+                isDark ? 'text-[#F4F4F4]' : 'text-[#212121]'
               }`}>
               {routines.length}개의 루틴을 이어가고 있어요
             </Text>
@@ -235,9 +256,7 @@ export default function RoutineScreen() {
             <ScrollView
               className="flex-1"
               showsVerticalScrollIndicator={false}
-              contentContainerStyle={{
-                paddingBottom: 32,
-              }}>
+              contentContainerStyle={{ paddingBottom: 32 }}>
               <View className="gap-3">
                 {routines.map((routine) => (
                   <RoutineCard

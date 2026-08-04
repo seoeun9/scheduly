@@ -1,4 +1,4 @@
-import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Animated, Easing, PanResponder, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from '@/utils/haptics';
@@ -170,16 +170,22 @@ function CalendarPage({
               <View
                 style={[
                   styles.dayCircle,
-                  isSelected && { backgroundColor: isDark ? '#DDDDDD' : '#111111' },
+                  isSelected && { backgroundColor: isDark ? '#F4F4F4' : '#212121' },
                   isToday &&
-                    !isSelected && { borderWidth: 1, borderColor: isDark ? '#DDDDDD' : '#111111' },
+                    !isSelected && { borderWidth: 1, borderColor: isDark ? '#F4F4F4' : '#212121' },
                 ]}>
                 <Text
-                  // className="font-manrope"
-                  style={[
-                    { color: isDark ? '#CCCCCC' : '#454545', fontSize: 14, fontWeight: '500' },
-                    isSelected && { color: isDark ? '#000000' : '#FFFFFF', fontWeight: '700' },
-                  ]}>
+                  style={{
+                    color: isSelected
+                      ? isDark
+                        ? '#000000'
+                        : '#FFFFFF'
+                      : isDark
+                        ? '#CCCCCC'
+                        : '#454545',
+                    fontSize: 14,
+                    fontWeight: isSelected ? '700' : '500',
+                  }}>
                   {day}
                 </Text>
               </View>
@@ -196,6 +202,7 @@ function CalendarPage({
 export default function Calendar({ selectedDate, todos, onSelectDate }: SchedulyCalendarProps) {
   const { isDark } = useTheme();
   const today = useMemo(() => new Date(), []);
+  const [localSelectedDate, setLocalSelectedDate] = useState(selectedDate);
 
   const [visibleDate, setVisibleDate] = useState(
     new Date(today.getFullYear(), today.getMonth(), 1)
@@ -352,15 +359,24 @@ export default function Calendar({ selectedDate, todos, onSelectDate }: Scheduly
     changeMonth(1);
   };
 
+  const handleSelectDate = useCallback(
+    (date: string) => {
+      setLocalSelectedDate(date);
+      onSelectDate(date);
+    },
+    [onSelectDate]
+  );
+
   const handleToday = () => {
-    const todayMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    const currentToday = new Date();
+    const todayMonth = new Date(currentToday.getFullYear(), currentToday.getMonth(), 1);
 
     const isAlreadyTodayMonth =
-      visibleDate.getFullYear() === today.getFullYear() &&
-      visibleDate.getMonth() === today.getMonth();
+      visibleDate.getFullYear() === currentToday.getFullYear() &&
+      visibleDate.getMonth() === currentToday.getMonth();
 
     void Haptics.selectionAsync();
-    onSelectDate(toDateKey(today));
+    handleSelectDate(toDateKey(currentToday));
 
     if (isAlreadyTodayMonth) {
       return;
@@ -374,16 +390,20 @@ export default function Calendar({ selectedDate, todos, onSelectDate }: Scheduly
   };
 
   useEffect(() => {
+    setLocalSelectedDate(selectedDate);
+  }, [selectedDate]);
+
+  useEffect(() => {
     if (!selectedDate) {
-      onSelectDate(toDateKey(today));
+      handleSelectDate(toDateKey(today));
     }
-  }, [onSelectDate, selectedDate, today]);
+  }, [handleSelectDate, selectedDate, today]);
 
   return (
     <View>
       <View className="mb-9 mt-4 flex-row items-center justify-between">
         <View>
-          <Text className="text-[13px] font-medium text-[#A5A5A5]">Today</Text>
+          <Text className="text-[13px] font-medium text-[#A5A5A5]">오늘은</Text>
 
           <Text className={`text-xl font-semibold ${isDark ? 'text-white' : 'text-black'}`}>
             {today.getFullYear()}년 {today.getMonth() + 1}월 {today.getDate()}일
@@ -454,10 +474,10 @@ export default function Calendar({ selectedDate, todos, onSelectDate }: Scheduly
                 date={date}
                 width={calendarWidth}
                 today={today}
-                selectedDate={selectedDate}
+                selectedDate={localSelectedDate}
                 todosByDate={todosByDate}
                 isDark={isDark}
-                onSelectDate={onSelectDate}
+                onSelectDate={handleSelectDate}
               />
             ))}
           </Animated.View>

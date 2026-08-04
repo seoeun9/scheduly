@@ -9,20 +9,20 @@
     "plugins": [
       "expo-font",
       "expo-secure-store",
-      "@react-native-community/datetimepicker"
+      "@react-native-community/datetimepicker",
+      "expo-notifications"
     ],
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
-    "splash": {
-      "image": "./src/assets/splash-transparent.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#BFE6FB"
-    },
-    "assetBundlePatterns": [
-      "**/*"
-    ],
+    "assetBundlePatterns": ["**/*"],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSUserNotificationsUsageDescription": "남은 할 일을 알려드리기 위해 알림을 사용합니다."
+      }
+    },
+    "android": {
+      "package": "com.scheduly"
     }
   }
 }

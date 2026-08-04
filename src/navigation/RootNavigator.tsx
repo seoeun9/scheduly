@@ -10,12 +10,15 @@ import AddTodoScreen from '@/screens/AddTodoScreen';
 import EditTodoScreen from '@/screens/EditTodoScreen';
 import AddRoutineScreen from '@/screens/routine/AddRoutineScreen';
 import EditRoutineScreen from '@/screens/routine/EditRoutineScreen';
+import EditRoutineQuoteScreen from '@/screens/routine/EditRoutineQuoteScreen';
+import TodoListScreen from '@/screens/TodoListScreen';
 
 export type RootStackParamList = {
   AuthWelcome: undefined;
   Login: undefined;
   SignUp: undefined;
   Main: undefined;
+  TodoList: undefined;
   SettingsSheet: undefined;
   AddTodo:
     | {
@@ -30,6 +33,7 @@ export type RootStackParamList = {
   EditRoutine: {
     routineId: string;
   };
+  EditRoutineQuote: undefined;
   AppTabs: undefined;
 };
 
@@ -37,11 +41,12 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function RootNavigator() {
   return (
-    <Stack.Navigator initialRouteName="AuthWelcome" screenOptions={{ headerShown: false }}>
+    <Stack.Navigator initialRouteName="AppTabs" screenOptions={{ headerShown: false }}>
       <Stack.Screen name="AuthWelcome" component={AuthWelcomeScreen} />
       <Stack.Screen name="Login" component={LoginScreen} />
       <Stack.Screen name="SignUp" component={SignUpScreen} />
       <Stack.Screen name="Main" component={MainScreen} />
+      <Stack.Screen name="TodoList" component={TodoListScreen} />
       {/* <Stack.Screen
         name="SettingsSheet"
         component={SettingScreen}
@@ -122,6 +127,20 @@ export default function RootNavigator() {
       <Stack.Screen
         name="EditRoutine"
         component={EditRoutineScreen}
+        options={{
+          presentation: 'modal',
+          animation: 'slide_from_bottom',
+          gestureDirection: 'vertical',
+          headerShown: false,
+
+          contentStyle: {
+            backgroundColor: '#FFFFFF',
+          },
+        }}
+      />
+      <Stack.Screen
+        name="EditRoutineQuote"
+        component={EditRoutineQuoteScreen}
         options={{
           presentation: 'modal',
           animation: 'slide_from_bottom',

@@ -22,6 +22,7 @@ import { TODO_ICONS, TODO_COLORS } from '@/utils/constants';
 import { useTheme } from '@/hooks/useTheme';
 
 const COLOR_OPTIONS = Object.keys(TODO_COLORS) as TodoColor[];
+const DEFAULT_TODO_TITLE = '새로운 할 일';
 
 const ICON_ROWS = 3;
 
@@ -69,7 +70,7 @@ export default function EditTodoScreen({ route, navigation }: any) {
   const updateTodo = useTodoStore((state) => state.updateTodo);
   const removeTodo = useTodoStore((state) => state.removeTodo);
   const { isDark } = useTheme();
-  const isSaveDisabled = !title.trim();
+  const isSaveDisabled = !todo;
 
   const handleClose = () => {
     void Haptics.selectionAsync();
@@ -87,9 +88,9 @@ export default function EditTodoScreen({ route, navigation }: any) {
   };
 
   const handleSave = () => {
-    const trimmedTitle = title.trim();
+    const trimmedTitle = title.trim() || DEFAULT_TODO_TITLE;
 
-    if (!trimmedTitle || !todo) {
+    if (!todo) {
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       return;
     }
@@ -452,7 +453,7 @@ export default function EditTodoScreen({ route, navigation }: any) {
                     color: selectedPaletteColor,
                   }}
                   numberOfLines={1}>
-                  {title.trim() || '할 일'}
+                  {title.trim() || DEFAULT_TODO_TITLE}
                 </Text>
               </View>
             ) : (
@@ -476,29 +477,32 @@ export default function EditTodoScreen({ route, navigation }: any) {
                         textDecorationColor: selectedPaletteColor,
                       }}
                       numberOfLines={1}>
-                      {title.trim() || '할 일'}
+                      {title.trim() || DEFAULT_TODO_TITLE}
                     </Text>
                   </View>
 
                   <View className="h-[34px] w-[34px] items-center justify-center">
-                    <Ionicons
-                      name="checkmark-done"
-                      size={29}
-                      color={todo?.done ? selectedPaletteColor : '#B7B7B7'}
+                    <View
                       style={{
-                        transform: [
-                          {
-                            translateX: 1,
-                          },
-                          {
-                            translateY: -2,
-                          },
-                          {
-                            rotate: '-8deg',
-                          },
-                        ],
-                      }}
-                    />
+                        width: 24,
+                        height: 24,
+                        borderRadius: 12,
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        borderWidth: 2,
+                        borderColor: selectedPaletteColor,
+                        backgroundColor: selectedPaletteColor,
+                      }}>
+                      <Ionicons
+                        name="checkmark"
+                        size={17}
+                        color={
+                          isDark && selectedColor === 'gray'
+                            ? TODO_COLORS.gray.lightColor // #222222
+                            : '#FFFFFF'
+                        }
+                      />
+                    </View>
                   </View>
                 </View>
 

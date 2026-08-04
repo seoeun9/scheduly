@@ -10,12 +10,12 @@ import {
   Text,
   TextInput,
   View,
+  Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import type { SFSymbol } from 'expo-symbols';
 import { AppSymbol } from '@/components/AppSymbol';
-import DateTimePicker, { type DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import * as Haptics from '@/utils/haptics';
 import { fromDateKey, generateRoutineTodos } from '@/utils/routineSchedule';
 
@@ -27,6 +27,7 @@ import { TODO_COLORS, TODO_ICONS } from '@/utils/constants';
 import type { TodoColor } from '@/types/todo';
 
 const ICON_ROWS = 3;
+const WEEK_DAYS = ['월', '화', '수', '목', '금', '토', '일'];
 
 const TODO_ICON_COLUMNS = Array.from(
   {
@@ -40,6 +41,7 @@ const TODO_ICON_COLUMNS = Array.from(
 );
 
 const COLOR_OPTIONS = Object.keys(TODO_COLORS) as TodoColor[];
+const DEFAULT_ROUTINE_TITLE = '새로운 루틴';
 
 const REPEAT_OPTIONS: {
   value: RepeatType;
@@ -103,6 +105,51 @@ function getRepeatText(repeatType: RepeatType, interval: number) {
   return `${interval}${getRepeatUnit(repeatType)}마다`;
 }
 
+type CalendarDay = number | string;
+
+function getCalendarDays(date: Date) {
+  const year = date.getFullYear();
+  const month = date.getMonth();
+
+  const firstDay = new Date(year, month, 1).getDay();
+  const blankCount = firstDay === 0 ? 6 : firstDay - 1;
+  const lastDate = new Date(year, month + 1, 0).getDate();
+
+  return [
+    ...Array.from({ length: blankCount }, (_, index) => `blank-${index}`),
+    ...Array.from({ length: lastDate }, (_, index) => index + 1),
+  ];
+}
+
+function getCalendarWeeks(date: Date) {
+  const days = getCalendarDays(date);
+  const trailingBlankCount = (7 - (days.length % 7)) % 7;
+
+  const paddedDays: CalendarDay[] = [
+    ...days,
+    ...Array.from({ length: trailingBlankCount }, (_, index) => `tail-blank-${index}`),
+  ];
+
+  return Array.from({ length: paddedDays.length / 7 }, (_, weekIndex) =>
+    paddedDays.slice(weekIndex * 7, weekIndex * 7 + 7)
+  );
+}
+
+function isSameDate(first: Date, second: Date) {
+  return (
+    first.getFullYear() === second.getFullYear() &&
+    first.getMonth() === second.getMonth() &&
+    first.getDate() === second.getDate()
+  );
+}
+
+function isBeforeDay(first: Date, second: Date) {
+  const firstDay = new Date(first.getFullYear(), first.getMonth(), first.getDate()).getTime();
+  const secondDay = new Date(second.getFullYear(), second.getMonth(), second.getDate()).getTime();
+
+  return firstDay < secondDay;
+}
+
 export default function EditRoutineScreen({ navigation, route }: any) {
   const { isDark } = useTheme();
   const { routineId } = route.params as { routineId: string };
@@ -140,6 +187,11 @@ export default function EditRoutineScreen({ navigation, route }: any) {
 
   const [datePickerTarget, setDatePickerTarget] = useState<DatePickerTarget>(null);
 
+  const [calendarMonth, setCalendarMonth] = useState(() => {
+    const today = new Date();
+    return new Date(today.getFullYear(), today.getMonth(), 1);
+  });
+
   const iconScrollX = useRef(new Animated.Value(0)).current;
 
   const [iconViewportWidth, setIconViewportWidth] = useState(0);
@@ -171,7 +223,7 @@ export default function EditRoutineScreen({ navigation, route }: any) {
     setEndDate(nextMonth);
   }, [routine]);
 
-  const isSaveDisabled = !title.trim() || !routine;
+  const isSaveDisabled = !routine;
 
   const selectedPalette = TODO_COLORS[selectedColor];
 
@@ -255,19 +307,27 @@ export default function EditRoutineScreen({ navigation, route }: any) {
     });
   };
 
-  const handleDateChange = (event: DateTimePickerEvent, date?: Date) => {
-    if (Platform.OS === 'android') {
-      setDatePickerTarget(null);
-    }
+  const openDatePicker = (target: Exclude<DatePickerTarget, null>) => {
+    void Haptics.selectionAsync();
 
-    if (event.type === 'dismissed' || !date) {
-      return;
-    }
+    const currentDate = target === 'start' ? startDate : endDate;
+
+    setCalendarMonth(new Date(currentDate.getFullYear(), currentDate.getMonth(), 1));
+    setDatePickerTarget(target);
+  };
+
+  const closeDatePicker = () => {
+    void Haptics.selectionAsync();
+    setDatePickerTarget(null);
+  };
+
+  const handleSelectDate = (date: Date) => {
+    void Haptics.selectionAsync();
 
     if (datePickerTarget === 'start') {
       setStartDate(date);
 
-      if (endDate < date) {
+      if (isBeforeDay(endDate, date)) {
         setEndDate(date);
       }
     }
@@ -276,15 +336,23 @@ export default function EditRoutineScreen({ navigation, route }: any) {
       setEndDate(date);
     }
 
-    if (Platform.OS === 'ios') {
-      setDatePickerTarget(null);
-    }
+    setDatePickerTarget(null);
+  };
+
+  const handleChangeCalendarMonth = (direction: -1 | 1) => {
+    void Haptics.selectionAsync();
+
+    setCalendarMonth((current) => {
+      const nextDate = new Date(current);
+      nextDate.setMonth(nextDate.getMonth() + direction);
+      return nextDate;
+    });
   };
 
   const handleSave = () => {
-    const trimmedTitle = title.trim();
+    const trimmedTitle = title.trim() || DEFAULT_ROUTINE_TITLE;
 
-    if (!trimmedTitle || !routine) {
+    if (!routine) {
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
 
       return;
@@ -672,7 +740,7 @@ export default function EditRoutineScreen({ navigation, route }: any) {
               className={`flex-row items-center justify-between rounded-[18px] px-5 py-4 ${
                 isDark ? 'bg-[#1A1A1A]' : 'bg-[#F4F4F4]'
               }`}
-              onPress={() => setDatePickerTarget('start')}>
+              onPress={() => openDatePicker('start')}>
               <Text className={`text-sm ${isDark ? 'text-[#A5A5A5]' : 'text-[#777777]'}`}>
                 시작일
               </Text>
@@ -731,7 +799,7 @@ export default function EditRoutineScreen({ navigation, route }: any) {
               {endDateEnabled && (
                 <Pressable
                   className="mt-4 flex-row items-center justify-between"
-                  onPress={() => setDatePickerTarget('end')}>
+                  onPress={() => openDatePicker('end')}>
                   <Text
                     className={`text-sm font-medium ${isDark ? 'text-white' : 'text-[#181A21]'}`}>
                     {formatDate(endDate)}
@@ -745,19 +813,6 @@ export default function EditRoutineScreen({ navigation, route }: any) {
                 </Pressable>
               )}
             </View>
-
-            {datePickerTarget && (
-              <View className="mt-3 items-end">
-                <DateTimePicker
-                  value={datePickerTarget === 'start' ? startDate : endDate}
-                  mode="date"
-                  display={Platform.OS === 'ios' ? 'compact' : 'default'}
-                  minimumDate={datePickerTarget === 'end' ? startDate : undefined}
-                  onChange={handleDateChange}
-                  themeVariant={isDark ? 'dark' : 'light'}
-                />
-              </View>
-            )}
           </View>
 
           <View className="mt-9">
@@ -789,7 +844,7 @@ export default function EditRoutineScreen({ navigation, route }: any) {
                     isDark ? 'text-white' : 'text-[#181A21]'
                   }`}
                   numberOfLines={1}>
-                  {title.trim() || '루틴'}
+                  {title.trim() || DEFAULT_ROUTINE_TITLE}
                 </Text>
 
                 <Text
@@ -819,6 +874,115 @@ export default function EditRoutineScreen({ navigation, route }: any) {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+
+      <Modal
+        visible={Boolean(datePickerTarget)}
+        transparent
+        animationType="fade"
+        onRequestClose={closeDatePicker}>
+        <Pressable style={styles.sheetBackdrop} onPress={closeDatePicker}>
+          <Pressable
+            className={`rounded-t-[28px] px-6 pb-8 pt-5 ${isDark ? 'bg-[#111111]' : 'bg-white'}`}
+            style={styles.calendarSheet}
+            onPress={(event) => event.stopPropagation()}>
+            <View className="mb-5 flex-row items-center justify-between">
+              <Pressable
+                className={`h-9 w-9 items-center justify-center rounded-full ${
+                  isDark ? 'bg-[#242424]' : 'bg-[#F4F4F4]'
+                }`}
+                onPress={() => handleChangeCalendarMonth(-1)}>
+                <Ionicons name="chevron-back" size={18} color={isDark ? '#FFFFFF' : '#181A21'} />
+              </Pressable>
+
+              <Text
+                className={`text-[17px] font-semibold ${isDark ? 'text-white' : 'text-[#181A21]'}`}>
+                {calendarMonth.getFullYear()}년 {calendarMonth.getMonth() + 1}월
+              </Text>
+
+              <Pressable
+                className={`h-9 w-9 items-center justify-center rounded-full ${
+                  isDark ? 'bg-[#242424]' : 'bg-[#F4F4F4]'
+                }`}
+                onPress={() => handleChangeCalendarMonth(1)}>
+                <Ionicons name="chevron-forward" size={18} color={isDark ? '#FFFFFF' : '#181A21'} />
+              </Pressable>
+            </View>
+
+            <View className="mb-2 flex-row">
+              {WEEK_DAYS.map((day) => (
+                <View key={day} className="flex-1 items-center">
+                  <Text className="text-xs font-medium text-[#A5A5A5]">{day}</Text>
+                </View>
+              ))}
+            </View>
+
+            <View style={styles.calendarGrid}>
+              {getCalendarWeeks(calendarMonth).map((week, weekIndex) => (
+                <View key={`week-${weekIndex}`} style={styles.calendarWeekRow}>
+                  {week.map((day) => {
+                    if (typeof day === 'string') {
+                      return <View key={day} style={styles.calendarDayCell} />;
+                    }
+
+                    const date = new Date(
+                      calendarMonth.getFullYear(),
+                      calendarMonth.getMonth(),
+                      day
+                    );
+
+                    const selectedDate = datePickerTarget === 'start' ? startDate : endDate;
+                    const isSelected = isSameDate(date, selectedDate);
+                    const isDisabled = datePickerTarget === 'end' && isBeforeDay(date, startDate);
+
+                    return (
+                      <Pressable
+                        key={`${calendarMonth.getFullYear()}-${calendarMonth.getMonth()}-${day}`}
+                        style={styles.calendarDayCell}
+                        disabled={isDisabled}
+                        onPress={() => handleSelectDate(date)}>
+                        <View
+                          className="h-10 w-10 items-center justify-center rounded-full"
+                          style={{
+                            backgroundColor: isSelected
+                              ? isDark
+                                ? '#FFFFFF'
+                                : '#181A21'
+                              : 'transparent',
+                            opacity: isDisabled ? 0.25 : 1,
+                          }}>
+                          <Text
+                            className="text-sm font-medium"
+                            style={{
+                              color: isSelected
+                                ? isDark
+                                  ? '#000000'
+                                  : '#FFFFFF'
+                                : isDark
+                                  ? '#E8E8E8'
+                                  : '#181A21',
+                            }}>
+                            {day}
+                          </Text>
+                        </View>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+              ))}
+            </View>
+
+            <Pressable
+              className={`mt-5 h-12 items-center justify-center rounded-full ${
+                isDark ? 'bg-white' : 'bg-black'
+              }`}
+              onPress={closeDatePicker}>
+              <Text className={`text-sm font-semibold ${isDark ? 'text-black' : 'text-white'}`}>
+                닫기
+              </Text>
+            </Pressable>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -869,5 +1033,35 @@ const styles = StyleSheet.create({
 
     borderWidth: 2,
     borderRadius: 21,
+  },
+
+  sheetBackdrop: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0, 0, 0, 0.42)',
+  },
+
+  calendarSheet: {
+    shadowColor: '#000000',
+    shadowOpacity: 0.18,
+    shadowRadius: 20,
+    shadowOffset: {
+      width: 0,
+      height: -8,
+    },
+    elevation: 12,
+  },
+
+  calendarGrid: {},
+
+  calendarWeekRow: {
+    flexDirection: 'row',
+  },
+
+  calendarDayCell: {
+    flex: 1,
+    height: 46,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
