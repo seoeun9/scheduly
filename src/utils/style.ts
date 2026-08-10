@@ -8,6 +8,11 @@ const styles = StyleSheet.create({
     paddingTop: 4,
     paddingBottom: 40,
   },
+  container: {
+    flex: 1,
+    paddingHorizontal: 24,
+    paddingTop: 18,
+  },
 });
 
 export default styles;

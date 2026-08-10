@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -116,25 +116,36 @@ export default function RoutineScreen() {
 
   const [quoteText, setQuoteText] = useState(DEFAULT_ROUTINE_QUOTE_TEXT);
   const [quoteAuthor, setQuoteAuthor] = useState(DEFAULT_ROUTINE_QUOTE_AUTHOR);
+  const hasLoadedQuoteRef = useRef(false);
+
+  const loadQuote = useCallback(async () => {
+    try {
+      const [savedQuoteText, savedQuoteAuthor] = await Promise.all([
+        AsyncStorage.getItem(ROUTINE_QUOTE_TEXT_KEY),
+        AsyncStorage.getItem(ROUTINE_QUOTE_AUTHOR_KEY),
+      ]);
+
+      setQuoteText(savedQuoteText || DEFAULT_ROUTINE_QUOTE_TEXT);
+      setQuoteAuthor(savedQuoteAuthor || DEFAULT_ROUTINE_QUOTE_AUTHOR);
+    } catch (error) {
+      console.log(error);
+    }
+  }, []);
+
+  useEffect(() => {
+    void loadQuote().finally(() => {
+      hasLoadedQuoteRef.current = true;
+    });
+  }, [loadQuote]);
 
   useFocusEffect(
     useCallback(() => {
-      const loadQuote = async () => {
-        try {
-          const [savedQuoteText, savedQuoteAuthor] = await Promise.all([
-            AsyncStorage.getItem(ROUTINE_QUOTE_TEXT_KEY),
-            AsyncStorage.getItem(ROUTINE_QUOTE_AUTHOR_KEY),
-          ]);
-
-          setQuoteText(savedQuoteText || DEFAULT_ROUTINE_QUOTE_TEXT);
-          setQuoteAuthor(savedQuoteAuthor || DEFAULT_ROUTINE_QUOTE_AUTHOR);
-        } catch (error) {
-          console.log(error);
-        }
-      };
+      if (!hasLoadedQuoteRef.current) {
+        return;
+      }
 
       void loadQuote();
-    }, [])
+    }, [loadQuote])
   );
 
   const handleAddRoutine = () => {

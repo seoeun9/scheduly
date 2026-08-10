@@ -1,5 +1,14 @@
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { Animated, Easing, PanResponder, Pressable, StyleSheet, Text, View } from 'react-native';
+import {
+  Animated,
+  Easing,
+  PanResponder,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+  useWindowDimensions,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from '@/utils/haptics';
 import type { Todo } from '@/stores/useTodoStore';
@@ -202,18 +211,20 @@ function CalendarPage({
 export default function Calendar({ selectedDate, todos, onSelectDate }: SchedulyCalendarProps) {
   const { isDark } = useTheme();
   const today = useMemo(() => new Date(), []);
+  const { width: windowWidth } = useWindowDimensions();
+  const estimatedCalendarWidth = Math.max(windowWidth - 48, 0);
   const [localSelectedDate, setLocalSelectedDate] = useState(selectedDate);
 
   const [visibleDate, setVisibleDate] = useState(
     new Date(today.getFullYear(), today.getMonth(), 1)
   );
 
-  const [calendarWidth, setCalendarWidth] = useState(0);
+  const [calendarWidth, setCalendarWidth] = useState(estimatedCalendarWidth);
 
   const isCalendarAnimating = useRef(false);
   const shouldRecenter = useRef(false);
 
-  const carouselTranslateX = useRef(new Animated.Value(0)).current;
+  const carouselTranslateX = useRef(new Animated.Value(-estimatedCalendarWidth)).current;
 
   const year = visibleDate.getFullYear();
   const month = visibleDate.getMonth();
@@ -268,6 +279,19 @@ export default function Calendar({ selectedDate, todos, onSelectDate }: Scheduly
     shouldRecenter.current = false;
     isCalendarAnimating.current = false;
   }, [visibleDate, calendarWidth, carouselTranslateX]);
+
+  useEffect(() => {
+    if (estimatedCalendarWidth <= 0 || isCalendarAnimating.current) {
+      return;
+    }
+
+    if (Math.abs(calendarWidth - estimatedCalendarWidth) <= 1) {
+      return;
+    }
+
+    setCalendarWidth(estimatedCalendarWidth);
+    carouselTranslateX.setValue(-estimatedCalendarWidth);
+  }, [calendarWidth, estimatedCalendarWidth, carouselTranslateX]);
 
   const changeMonth = (direction: -1 | 1) => {
     if (isCalendarAnimating.current || calendarWidth === 0) {
@@ -450,7 +474,7 @@ export default function Calendar({ selectedDate, todos, onSelectDate }: Scheduly
         onLayout={(event) => {
           const width = event.nativeEvent.layout.width;
 
-          if (width > 0 && width !== calendarWidth) {
+          if (width > 0 && Math.abs(width - calendarWidth) > 1) {
             setCalendarWidth(width);
             carouselTranslateX.setValue(-width);
           }

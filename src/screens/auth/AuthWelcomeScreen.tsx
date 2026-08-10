@@ -1,5 +1,5 @@
 import React from 'react';
-import { Image, Pressable, SafeAreaView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, SafeAreaView, StyleSheet, Text, View } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../../navigation/RootNavigator';
 
@@ -9,7 +9,7 @@ export default function AuthWelcomeScreen({ navigation }: Props) {
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
-        <Image
+        {/* <Image
           source={require('@/assets/logos/logo.png')}
           style={styles.logo}
           resizeMode="contain"
@@ -19,7 +19,7 @@ export default function AuthWelcomeScreen({ navigation }: Props) {
           source={require('@/assets/logos/woman.png')}
           style={styles.image}
           resizeMode="contain"
-        />
+        /> */}
 
         <Text style={styles.question}>Do you have an account?</Text>
 

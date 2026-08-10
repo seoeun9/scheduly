@@ -1,23 +1,24 @@
 // App.tsx
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { AppState } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
-import * as SplashScreen from 'expo-splash-screen';
 import { SafeAreaProvider, initialWindowMetrics } from 'react-native-safe-area-context';
-import { useFonts } from 'expo-font';
 import './global.css';
 import { NavigationContainer } from '@react-navigation/native';
 import RootNavigator from '@/navigation/RootNavigator';
 import { ToastProvider } from '@/components/ToastProvider';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useReminderSettingsStore } from '@/stores/reminderSettingsStore';
+import { useThemeStore } from '@/stores/themeStore';
 import { useTodoStore } from '@/stores/useTodoStore';
 import { syncTodoReminderNotification } from '@/utils/reminderNotifications';
-
-SplashScreen.preventAutoHideAsync();
+import { useOnboardingStore } from '@/stores/onboardingStore';
+import OnboardingScreen from '@/screens/onboarding/OnboardingScreen';
 
 export default function App() {
-  const [fontsLoaded] = useFonts({});
+  const [isBootstrapped, setIsBootstrapped] = useState(false);
+  const hasCompletedOnboarding = useOnboardingStore((state) => state.hasCompletedOnboarding);
+  const setHasCompletedOnboarding = useOnboardingStore((state) => state.setHasCompletedOnboarding);
 
   useEffect(() => {
     let storesReady = false;
@@ -52,10 +53,16 @@ export default function App() {
 
     void Promise.all([
       useReminderSettingsStore.persist.rehydrate(),
+      useThemeStore.persist.rehydrate(),
       useTodoStore.persist.rehydrate(),
+      useOnboardingStore.persist.rehydrate(),
     ]).then(() => {
+      // 임시: 온보딩 계속 확인할 수 있게 하기
+      setHasCompletedOnboarding(false);
+
       storesReady = true;
       sync();
+      setIsBootstrapped(true);
     });
 
     return () => {
@@ -63,22 +70,22 @@ export default function App() {
       unsubscribeTodos();
       appStateSubscription.remove();
     };
-  }, []);
+  }, [setHasCompletedOnboarding]);
 
-  useEffect(() => {
-    if (fontsLoaded) {
-      void SplashScreen.hideAsync();
-    }
-  }, [fontsLoaded]);
-
-  if (!fontsLoaded) return null;
+  if (!isBootstrapped) {
+    return null;
+  }
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider initialMetrics={initialWindowMetrics}>
         <ToastProvider>
           <NavigationContainer>
-            <RootNavigator />
+            {hasCompletedOnboarding ? (
+              <RootNavigator />
+            ) : (
+              <OnboardingScreen onComplete={() => setHasCompletedOnboarding(true)} />
+            )}
           </NavigationContainer>
         </ToastProvider>
         <StatusBar style="auto" />

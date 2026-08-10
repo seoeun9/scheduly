@@ -74,6 +74,7 @@ export default function AppTabNavigator() {
   return (
     <Tab.Navigator
       initialRouteName="Todos"
+      detachInactiveScreens={false}
       screenListeners={{
         tabPress: () => {
           void Haptics.selectionAsync();
@@ -81,6 +82,8 @@ export default function AppTabNavigator() {
       }}
       screenOptions={{
         headerShown: false,
+        lazy: false,
+        animation: 'none',
         tabBarShowLabel: false,
         tabBarHideOnKeyboard: true,
 
