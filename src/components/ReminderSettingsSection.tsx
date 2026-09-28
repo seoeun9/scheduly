@@ -1,3 +1,4 @@
+import { Text } from '@/components/AppText';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Alert,
@@ -6,7 +7,6 @@ import {
   Linking,
   Modal,
   Pressable,
-  Text,
   View,
   type NativeScrollEvent,
   type NativeSyntheticEvent,

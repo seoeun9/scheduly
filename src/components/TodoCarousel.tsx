@@ -1,5 +1,6 @@
+import { Text } from '@/components/AppText';
 import React, { useMemo } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from '@/utils/haptics';
 import { useTodoStore } from '@/stores/useTodoStore';

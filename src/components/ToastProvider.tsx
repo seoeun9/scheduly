@@ -1,5 +1,6 @@
+import { Text } from '@/components/AppText';
 import { createContext, ReactNode, useContext, useRef, useState } from 'react';
-import { Animated, StyleSheet, Text } from 'react-native';
+import { Animated, StyleSheet} from 'react-native';
 import AntDesign from '@expo/vector-icons/AntDesign';
 
 type ToastContextValue = {
@@ -80,7 +81,6 @@ const styles = StyleSheet.create({
   text: {
     fontSize: 14,
     color: '#212121',
-    fontFamily: 'McLaren',
   },
 
   icon: {},

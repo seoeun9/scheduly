@@ -1,3 +1,4 @@
+import { Text, TextInput } from '@/components/AppText';
 import React, { useEffect, useRef, useState } from 'react';
 import {
   Animated,
@@ -7,8 +8,6 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
-  Text,
-  TextInput,
   View,
   Modal,
 } from 'react-native';
@@ -42,24 +41,6 @@ const TODO_ICON_COLUMNS = Array.from(
 
 const COLOR_OPTIONS = Object.keys(TODO_COLORS) as TodoColor[];
 const DEFAULT_ROUTINE_TITLE = '새로운 루틴';
-
-const REPEAT_OPTIONS: {
-  value: RepeatType;
-  label: string;
-}[] = [
-  {
-    value: 'daily',
-    label: '일',
-  },
-  {
-    value: 'weekly',
-    label: '주',
-  },
-  {
-    value: 'monthly',
-    label: '월',
-  },
-];
 
 type DatePickerTarget = 'start' | 'end' | null;
 
@@ -254,6 +235,14 @@ export default function EditRoutineScreen({ navigation, route }: any) {
   });
 
   const repeatText = getRepeatText(repeatType, interval);
+  const repeatDetail =
+    repeatType === 'weekly'
+      ? ` · ${(routine?.weeklyDays?.length ? routine.weeklyDays : [startDate.getDay()])
+          .map((day) => WEEK_DAYS[(day + 6) % 7])
+          .join(', ')}`
+      : repeatType === 'monthly'
+        ? ` · ${routine?.monthlyDay ?? startDate.getDate()}일`
+        : '';
 
   const handleClose = () => {
     void Haptics.selectionAsync();
@@ -268,29 +257,6 @@ export default function EditRoutineScreen({ navigation, route }: any) {
   const handleSelectColor = (color: TodoColor) => {
     void Haptics.selectionAsync();
     setSelectedColor(color);
-  };
-
-  const handleSelectRepeatType = (value: RepeatType) => {
-    void Haptics.selectionAsync();
-
-    setRepeatType(value);
-    setInterval(1);
-  };
-
-  const handleDecreaseInterval = () => {
-    if (interval <= 1) {
-      return;
-    }
-
-    void Haptics.selectionAsync();
-
-    setInterval((current) => Math.max(1, current - 1));
-  };
-
-  const handleIncreaseInterval = () => {
-    void Haptics.selectionAsync();
-
-    setInterval((current) => Math.min(99, current + 1));
   };
 
   const handleToggleEndDate = () => {
@@ -362,11 +328,7 @@ export default function EditRoutineScreen({ navigation, route }: any) {
       title: trimmedTitle,
       icon: selectedIcon,
       color: selectedColor,
-      repeatType,
-      interval,
-      startDate: toDateKey(startDate),
       endDate: endDateEnabled ? toDateKey(endDate) : null,
-      nextDate: formatDate(startDate),
     };
 
     const updatedRoutine = {
@@ -465,7 +427,7 @@ export default function EditRoutineScreen({ navigation, route }: any) {
               루틴 편집
             </Text>
 
-            <Text className="text-sm text-[#A5A5A5]">루틴의 반복과 기간을 수정해보세요</Text>
+            <Text className="text-sm text-[#A5A5A5]">루틴 정보와 종료일을 수정해보세요</Text>
           </View>
 
           <View className="mt-9">
@@ -662,71 +624,20 @@ export default function EditRoutineScreen({ navigation, route }: any) {
             </Text>
 
             <View
-              className={`flex-row rounded-[18px] p-1 ${isDark ? 'bg-[#1A1A1A]' : 'bg-[#F4F4F4]'}`}>
-              {REPEAT_OPTIONS.map((option) => {
-                const isSelected = repeatType === option.value;
-
-                return (
-                  <Pressable
-                    key={option.value}
-                    className="h-11 flex-1 items-center justify-center rounded-[15px]"
-                    style={{
-                      backgroundColor: isSelected
-                        ? isDark
-                          ? '#FFFFFF'
-                          : '#181A21'
-                        : 'transparent',
-                    }}
-                    onPress={() => handleSelectRepeatType(option.value)}>
-                    <Text
-                      className={`text-sm font-semibold ${
-                        isSelected
-                          ? isDark
-                            ? 'text-black'
-                            : 'text-white'
-                          : isDark
-                            ? 'text-[#8D8D8D]'
-                            : 'text-[#777777]'
-                      }`}>
-                      {option.label}
-                    </Text>
-                  </Pressable>
-                );
-              })}
-            </View>
-
-            <View
-              className={`mt-3 flex-row items-center justify-between rounded-[18px] px-4 py-3 ${
+              className={`flex-row items-center justify-between rounded-[18px] px-5 py-4 ${
                 isDark ? 'bg-[#1A1A1A]' : 'bg-[#F4F4F4]'
               }`}>
-              <Text className={`text-sm ${isDark ? 'text-white' : 'text-[#181A21]'}`}>
-                {repeatText}
-              </Text>
-
-              <View className="flex-row items-center">
-                <Pressable
-                  className={`h-8 w-8 items-center justify-center rounded-full ${
-                    isDark ? 'bg-[#2A2A2A]' : 'bg-white'
-                  }`}
-                  onPress={handleDecreaseInterval}>
-                  <Ionicons name="remove" size={17} color={isDark ? '#FFFFFF' : '#181A21'} />
-                </Pressable>
-
-                <Text
-                  className={`w-11 text-center text-base font-semibold ${
-                    isDark ? 'text-white' : 'text-[#181A21]'
-                  }`}>
-                  {interval}
+              <View>
+                <Text className={`text-sm font-medium ${isDark ? 'text-white' : 'text-[#181A21]'}`}>
+                  {repeatText}
+                  {repeatDetail}
                 </Text>
-
-                <Pressable
-                  className={`h-8 w-8 items-center justify-center rounded-full ${
-                    isDark ? 'bg-[#2A2A2A]' : 'bg-white'
-                  }`}
-                  onPress={handleIncreaseInterval}>
-                  <Ionicons name="add" size={17} color={isDark ? '#FFFFFF' : '#181A21'} />
-                </Pressable>
+                <Text className={`mt-1 text-xs ${isDark ? 'text-[#777777]' : 'text-[#A5A5A5]'}`}>
+                  반복 설정은 생성 후 변경할 수 없어요
+                </Text>
               </View>
+
+              <Ionicons name="lock-closed-outline" size={16} color="#A5A5A5" />
             </View>
           </View>
 
@@ -736,11 +647,10 @@ export default function EditRoutineScreen({ navigation, route }: any) {
               기간
             </Text>
 
-            <Pressable
+            <View
               className={`flex-row items-center justify-between rounded-[18px] px-5 py-4 ${
                 isDark ? 'bg-[#1A1A1A]' : 'bg-[#F4F4F4]'
-              }`}
-              onPress={() => openDatePicker('start')}>
+              }`}>
               <Text className={`text-sm ${isDark ? 'text-[#A5A5A5]' : 'text-[#777777]'}`}>
                 시작일
               </Text>
@@ -754,12 +664,12 @@ export default function EditRoutineScreen({ navigation, route }: any) {
                 </Text>
 
                 <Ionicons
-                  name="calendar-outline"
+                  name="lock-closed-outline"
                   size={17}
                   color={isDark ? '#A5A5A5' : '#777777'}
                 />
               </View>
-            </Pressable>
+            </View>
 
             <View
               className={`mt-3 rounded-[18px] px-5 py-4 ${
@@ -850,7 +760,8 @@ export default function EditRoutineScreen({ navigation, route }: any) {
                 <Text
                   className={`mt-1 text-xs ${isDark ? 'text-[#8D8D8D]' : 'text-[#969696]'}`}
                   numberOfLines={1}>
-                  {repeatText} · {formatDate(startDate)}부터
+                  {repeatText}
+                  {repeatDetail} · {formatDate(startDate)}부터
                 </Text>
 
                 <View className="mt-2 flex-row items-center">

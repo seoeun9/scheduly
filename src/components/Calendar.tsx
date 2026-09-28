@@ -1,11 +1,12 @@
+import { Text } from '@/components/AppText';
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import {
   Animated,
   Easing,
   PanResponder,
+  Platform,
   Pressable,
   StyleSheet,
-  Text,
   View,
   useWindowDimensions,
 } from 'react-native';
@@ -181,7 +182,16 @@ function CalendarPage({
                   styles.dayCircle,
                   isSelected && { backgroundColor: isDark ? '#F4F4F4' : '#212121' },
                   isToday &&
-                    !isSelected && { borderWidth: 1, borderColor: isDark ? '#F4F4F4' : '#212121' },
+                    (Platform.OS === 'android'
+                      ? {
+                          // Keep Android's clipping bounds stable when selecting today.
+                          borderWidth: 1,
+                          borderColor: isSelected ? 'transparent' : isDark ? '#F4F4F4' : '#212121',
+                        }
+                      : !isSelected && {
+                          borderWidth: 1,
+                          borderColor: isDark ? '#F4F4F4' : '#212121',
+                        }),
                 ]}>
                 <Text
                   style={{
@@ -559,11 +569,6 @@ const styles = StyleSheet.create({
     color: '#454545',
     fontSize: 14,
     fontWeight: '500',
-  },
-
-  selectedDayText: {
-    color: '#FFFFFF',
-    fontWeight: '700',
   },
 
   progressTrack: {

@@ -1,4 +1,5 @@
-import { Animated, FlatList, Pressable, Text, View } from 'react-native';
+import { Text } from '@/components/AppText';
+import { Animated, FlatList, Pressable, View } from 'react-native';
 import { useRef } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import type { Todo } from '@/stores/useTodoStore';

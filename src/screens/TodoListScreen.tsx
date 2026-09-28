@@ -1,6 +1,7 @@
+import { Text } from '@/components/AppText';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 
-import { Animated, Easing, Pressable, Text, View } from 'react-native';
+import { Animated, Easing, Pressable, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { AppSymbol } from '@/components/AppSymbol';

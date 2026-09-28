@@ -1,3 +1,4 @@
+import { Text, TextInput } from '@/components/AppText';
 import React, { useEffect, useState } from 'react';
 import {
   Keyboard,
@@ -5,8 +6,6 @@ import {
   Platform,
   Pressable,
   ScrollView,
-  Text,
-  TextInput,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';

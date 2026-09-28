@@ -1,5 +1,6 @@
+import { Text } from '@/components/AppText';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Pressable, ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, useNavigation, type NavigationProp } from '@react-navigation/native';
@@ -32,10 +33,20 @@ function getRepeatText(routine: Routine) {
   }
 
   if (repeatType === 'weekly') {
-    return interval === 1 ? '매주' : `${interval}주마다`;
+    const startDate = new Date(`${routine.startDate}T00:00:00`);
+    const weeklyDays = routine.weeklyDays?.length ? routine.weeklyDays : [startDate.getDay()];
+    const weekDayLabels = ['일', '월', '화', '수', '목', '금', '토'];
+    const daysText = weeklyDays.map((day) => weekDayLabels[day]).join(', ');
+    const intervalText = interval === 1 ? '매주' : `${interval}주마다`;
+
+    return `${intervalText} · ${daysText}`;
   }
 
-  return interval === 1 ? '매달' : `${interval}개월마다`;
+  const startDay = Number(routine.startDate.split('-')[2]);
+  const monthlyDay = routine.monthlyDay ?? startDay;
+  const intervalText = interval === 1 ? '매달' : `${interval}개월마다`;
+
+  return `${intervalText} · ${monthlyDay}일`;
 }
 
 function getPeriodText(routine: Routine) {

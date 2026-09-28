@@ -1,3 +1,5 @@
+import { FontSettingsSection } from '@/components/FontSettingsSection';
+import { Text } from '@/components/AppText';
 // import { useEffect, useRef, useState } from 'react';
 // import { Animated, Easing, Platform, View, Text, Pressable, Modal } from 'react-native';
 // import { Ionicons } from '@expo/vector-icons';
@@ -502,7 +504,7 @@
 //     </>
 //   );
 // }
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { ReminderSettingsSection } from '@/components/ReminderSettingsSection';
 import { ThemeSettingsSection } from '@/components/ThemeSettingsSection';
@@ -531,6 +533,8 @@ export default function SettingSection(props: SettingSectionProps) {
             <View className={`my-5 h-px w-full ${isDark ? 'bg-[#2A2A2A]' : 'bg-[#F1F1F1]'}`} />
 
             <ThemeSettingsSection />
+            <View className={`my-5 h-px w-full ${isDark ? 'bg-[#2A2A2A]' : 'bg-[#F1F1F1]'}`} />
+            <FontSettingsSection />
           </View>
         )}
 

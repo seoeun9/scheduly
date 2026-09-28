@@ -1,3 +1,4 @@
+import { Text, TextInput } from '@/components/AppText';
 import React, { useState, useRef } from 'react';
 import {
   Keyboard,
@@ -6,8 +7,6 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
-  Text,
-  TextInput,
   View,
   Animated,
 } from 'react-native';

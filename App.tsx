@@ -1,3 +1,5 @@
+import { FontProvider } from '@/components/AppText';
+import { useFontStore } from '@/stores/fontStore';
 // App.tsx
 import { useEffect, useState } from 'react';
 import { AppState } from 'react-native';
@@ -54,11 +56,12 @@ export default function App() {
     void Promise.all([
       useReminderSettingsStore.persist.rehydrate(),
       useThemeStore.persist.rehydrate(),
+      useFontStore.persist.rehydrate(),
       useTodoStore.persist.rehydrate(),
       useOnboardingStore.persist.rehydrate(),
     ]).then(() => {
       // 임시: 온보딩 계속 확인할 수 있게 하기
-      setHasCompletedOnboarding(false);
+      // setHasCompletedOnboarding(false);
 
       storesReady = true;
       sync();
@@ -77,19 +80,22 @@ export default function App() {
   }
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <SafeAreaProvider initialMetrics={initialWindowMetrics}>
-        <ToastProvider>
-          <NavigationContainer>
-            {hasCompletedOnboarding ? (
+    <FontProvider>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <SafeAreaProvider initialMetrics={initialWindowMetrics}>
+          <ToastProvider>
+            <NavigationContainer>
+              {/* {hasCompletedOnboarding ? (
               <RootNavigator />
             ) : (
               <OnboardingScreen onComplete={() => setHasCompletedOnboarding(true)} />
-            )}
-          </NavigationContainer>
-        </ToastProvider>
-        <StatusBar style="auto" />
-      </SafeAreaProvider>
-    </GestureHandlerRootView>
+            )} */}
+              <RootNavigator />
+            </NavigationContainer>
+          </ToastProvider>
+          <StatusBar style="auto" />
+        </SafeAreaProvider>
+      </GestureHandlerRootView>
+    </FontProvider>
   );
 }

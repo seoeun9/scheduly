@@ -43,6 +43,15 @@ function getDayDifference(start: Date, target: Date) {
   return Math.round((targetValue - startValue) / (1000 * 60 * 60 * 24));
 }
 
+function getStartOfWeek(date: Date) {
+  const result = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  const daysSinceMonday = (result.getDay() + 6) % 7;
+
+  result.setDate(result.getDate() - daysSinceMonday);
+
+  return result;
+}
+
 function isRoutineDate(routine: Routine, date: Date) {
   const startDate = fromDateKey(routine.startDate);
 
@@ -65,9 +74,12 @@ function isRoutineDate(routine: Routine, date: Date) {
   }
 
   if (routine.repeatType === 'weekly') {
-    const difference = getDayDifference(startDate, date);
+    const startWeek = getStartOfWeek(startDate);
+    const targetWeek = getStartOfWeek(date);
+    const weekDifference = getDayDifference(startWeek, targetWeek) / 7;
+    const weeklyDays = routine.weeklyDays?.length ? routine.weeklyDays : [startDate.getDay()];
 
-    return difference % (interval * 7) === 0;
+    return weekDifference % interval === 0 && weeklyDays.includes(date.getDay());
   }
 
   const monthDifference =
@@ -79,7 +91,7 @@ function isRoutineDate(routine: Routine, date: Date) {
 
   const lastDayOfMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
 
-  const scheduledDay = Math.min(startDate.getDate(), lastDayOfMonth);
+  const scheduledDay = Math.min(routine.monthlyDay ?? startDate.getDate(), lastDayOfMonth);
 
   return date.getDate() === scheduledDay;
 }

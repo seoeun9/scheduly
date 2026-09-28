@@ -16,6 +16,8 @@ export type Routine = {
 
   repeatType: RepeatType;
   interval: number;
+  weeklyDays?: number[];
+  monthlyDay?: number;
 
   startDate: string;
   endDate: string | null;
@@ -32,6 +34,8 @@ export type AddRoutineInput = {
 
   repeatType: RepeatType;
   interval: number;
+  weeklyDays: number[];
+  monthlyDay: number;
 
   startDate: string;
   endDate: string | null;
@@ -42,7 +46,16 @@ export type AddRoutineInput = {
 type UpdateRoutineInput = Partial<
   Pick<
     Routine,
-    'title' | 'icon' | 'color' | 'repeatType' | 'interval' | 'startDate' | 'endDate' | 'nextDate'
+    | 'title'
+    | 'icon'
+    | 'color'
+    | 'repeatType'
+    | 'interval'
+    | 'weeklyDays'
+    | 'monthlyDay'
+    | 'startDate'
+    | 'endDate'
+    | 'nextDate'
   >
 >;
 

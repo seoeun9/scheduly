@@ -1,3 +1,4 @@
+import { Text, TextInput } from '@/components/AppText';
 import React, { useState, useEffect, useRef } from 'react';
 import {
   Keyboard,
@@ -6,8 +7,6 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
-  Text,
-  TextInput,
   View,
   Animated,
 } from 'react-native';
@@ -23,6 +22,17 @@ import { useTheme } from '@/hooks/useTheme';
 
 const COLOR_OPTIONS = Object.keys(TODO_COLORS) as TodoColor[];
 const DEFAULT_TODO_TITLE = '새로운 할 일';
+
+const getNextDateKey = (dateKey: string) => {
+  const [year, month, day] = dateKey.split('-').map(Number);
+  const nextDate = new Date(year, month - 1, day + 1);
+
+  const nextYear = nextDate.getFullYear();
+  const nextMonth = String(nextDate.getMonth() + 1).padStart(2, '0');
+  const nextDay = String(nextDate.getDate()).padStart(2, '0');
+
+  return `${nextYear}-${nextMonth}-${nextDay}`;
+};
 
 const ICON_ROWS = 3;
 
@@ -49,6 +59,8 @@ export default function EditTodoScreen({ route, navigation }: any) {
   const todo = useTodoStore((state) => state.todos.find((item) => item.id === todoId));
 
   const [title, setTitle] = useState('');
+  const [selectedDate, setSelectedDate] = useState('');
+  const [isPostponed, setIsPostponed] = useState(false);
 
   const iconScrollX = useRef(new Animated.Value(0)).current;
 
@@ -62,6 +74,8 @@ export default function EditTodoScreen({ route, navigation }: any) {
     }
 
     setTitle(todo.title);
+    setSelectedDate(todo.date);
+    setIsPostponed(false);
     setSelectedIcon(todo.icon);
     setSelectedColor(todo.color);
   }, [todo]);
@@ -87,6 +101,16 @@ export default function EditTodoScreen({ route, navigation }: any) {
     setSelectedColor(color);
   };
 
+  const handlePostponeToNextDay = () => {
+    if (!todo || isPostponed) {
+      return;
+    }
+
+    void Haptics.selectionAsync();
+    setSelectedDate(getNextDateKey(selectedDate || todo.date));
+    setIsPostponed(true);
+  };
+
   const handleSave = () => {
     const trimmedTitle = title.trim() || DEFAULT_TODO_TITLE;
 
@@ -96,6 +120,7 @@ export default function EditTodoScreen({ route, navigation }: any) {
     }
 
     updateTodo(todo.id, {
+      date: selectedDate || todo.date,
       title: trimmedTitle,
       icon: selectedIcon,
       color: selectedColor,
@@ -189,7 +214,23 @@ export default function EditTodoScreen({ route, navigation }: any) {
               할 일 편집
             </Text>
 
-            <Text className="text-sm text-[#A5A5A5]">on {todo?.date}</Text>
+            <View className="flex-row items-center gap-2">
+              <Text className="text-sm text-[#A5A5A5]">아직 완료하지 못했나요?</Text>
+
+              {isPostponed ? (
+                <View className="h-7 flex-row items-center gap-1">
+                  <Ionicons name="checkmark" size={15} color="#55B889" />
+                  <Text className="text-xs font-semibold text-[#55B889]">다음 날로 미뤄졌어요</Text>
+                </View>
+              ) : (
+                <Pressable
+                  className={`h-7 justify-center rounded-full px-3 ${isDark ? 'bg-[#2A2A2A]' : 'bg-[#F0F0F0]'}`}
+                  style={({ pressed }) => [pressed && styles.buttonPressed]}
+                  onPress={handlePostponeToNextDay}>
+                  <Text className="text-xs font-semibold text-[#A5A5A5]">다음 날로 미루기</Text>
+                </Pressable>
+              )}
+            </View>
           </View>
 
           <View className="mt-9">

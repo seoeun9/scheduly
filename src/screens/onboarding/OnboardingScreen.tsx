@@ -1,4 +1,5 @@
-import { Pressable, View, Text } from 'react-native';
+import { Text } from '@/components/AppText';
+import { Pressable, View} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import styles from '@/utils/style';
@@ -58,7 +59,7 @@ export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) 
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={styles.safeArea} className="flex-1 bg-[#212121]">
       <View style={styles.container}>
         <Pressable onPress={goBackStep} hitSlop={12} disabled={currentStep === 0}>
           <Ionicons name="chevron-back" size={22} color="#181A21" />

@@ -1,3 +1,4 @@
+import { Text, TextInput } from '@/components/AppText';
 import React, { useRef, useState } from 'react';
 import {
   Animated,
@@ -8,8 +9,6 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
-  Text,
-  TextInput,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -27,6 +26,10 @@ import type { TodoColor } from '@/types/todo';
 
 const ICON_ROWS = 3;
 const WEEK_DAYS = ['월', '화', '수', '목', '금', '토', '일'];
+const WEEK_DAY_OPTIONS = WEEK_DAYS.map((label, index) => ({
+  label,
+  value: (index + 1) % 7,
+}));
 
 const TODO_ICON_COLUMNS = Array.from(
   { length: Math.ceil(TODO_ICONS.length / ICON_ROWS) },
@@ -130,6 +133,8 @@ export default function AddRoutineScreen({ navigation }: any) {
   const [repeatType, setRepeatType] = useState<RepeatType>('daily');
   const [interval, setInterval] = useState(1);
   const [startDate, setStartDate] = useState(new Date());
+  const [weeklyDays, setWeeklyDays] = useState<number[]>(() => [new Date().getDay()]);
+  const [monthlyDay, setMonthlyDay] = useState(() => new Date().getDate());
   const [endDateEnabled, setEndDateEnabled] = useState(false);
   const [endDate, setEndDate] = useState(() => {
     const nextMonth = new Date();
@@ -177,6 +182,14 @@ export default function AddRoutineScreen({ navigation }: any) {
   });
 
   const repeatText = getRepeatText(repeatType, interval);
+  const repeatDetail =
+    repeatType === 'weekly'
+      ? ` · ${WEEK_DAY_OPTIONS.filter((option) => weeklyDays.includes(option.value))
+          .map((option) => option.label)
+          .join(', ')}`
+      : repeatType === 'monthly'
+        ? ` · ${monthlyDay}일`
+        : '';
 
   const handleClose = () => {
     void Haptics.selectionAsync();
@@ -197,6 +210,36 @@ export default function AddRoutineScreen({ navigation }: any) {
     void Haptics.selectionAsync();
     setRepeatType(value);
     setInterval(1);
+
+    if (value === 'weekly') {
+      setWeeklyDays([startDate.getDay()]);
+    }
+
+    if (value === 'monthly') {
+      setMonthlyDay(startDate.getDate());
+    }
+  };
+
+  const handleToggleWeekDay = (day: number) => {
+    void Haptics.selectionAsync();
+
+    setWeeklyDays((current) => {
+      if (current.includes(day)) {
+        return current.length === 1 ? current : current.filter((item) => item !== day);
+      }
+
+      return [...current, day].sort((first, second) => {
+        const firstIndex = WEEK_DAY_OPTIONS.findIndex((option) => option.value === first);
+        const secondIndex = WEEK_DAY_OPTIONS.findIndex((option) => option.value === second);
+
+        return firstIndex - secondIndex;
+      });
+    });
+  };
+
+  const handleSelectMonthlyDay = (day: number) => {
+    void Haptics.selectionAsync();
+    setMonthlyDay(day);
   };
 
   const handleDecreaseInterval = () => {
@@ -276,6 +319,8 @@ export default function AddRoutineScreen({ navigation }: any) {
       color: selectedColor,
       repeatType,
       interval,
+      weeklyDays,
+      monthlyDay,
       startDate: toDateKey(startDate),
       endDate: endDateEnabled ? toDateKey(endDate) : null,
       nextDate: formatDate(startDate),
@@ -572,6 +617,88 @@ export default function AddRoutineScreen({ navigation }: any) {
                 </Pressable>
               </View>
             </View>
+
+            {repeatType === 'weekly' && (
+              <View
+                className={`mt-3 rounded-[18px] p-4 ${isDark ? 'bg-[#1A1A1A]' : 'bg-[#F4F4F4]'}`}>
+                <Text className={`mb-3 text-sm ${isDark ? 'text-[#A5A5A5]' : 'text-[#777777]'}`}>
+                  반복 요일
+                </Text>
+
+                <View className="flex-row justify-between">
+                  {WEEK_DAY_OPTIONS.map((option) => {
+                    const isSelected = weeklyDays.includes(option.value);
+
+                    return (
+                      <Pressable
+                        key={option.value}
+                        className="h-9 w-9 items-center justify-center rounded-full"
+                        style={({ pressed }) => [
+                          {
+                            backgroundColor: isSelected
+                              ? selectedPaletteColor
+                              : isDark
+                                ? '#2A2A2A'
+                                : '#FFFFFF',
+                          },
+                          pressed && styles.optionPressed,
+                        ]}
+                        onPress={() => handleToggleWeekDay(option.value)}>
+                        <Text
+                          className={`text-xs font-semibold ${
+                            isSelected ? 'text-white' : isDark ? 'text-[#A5A5A5]' : 'text-[#777777]'
+                          }`}>
+                          {option.label}
+                        </Text>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+              </View>
+            )}
+
+            {repeatType === 'monthly' && (
+              <View
+                className={`mt-3 rounded-[18px] py-4 ${isDark ? 'bg-[#1A1A1A]' : 'bg-[#F4F4F4]'}`}>
+                <Text
+                  className={`mb-3 px-4 text-sm ${isDark ? 'text-[#A5A5A5]' : 'text-[#777777]'}`}>
+                  반복 날짜
+                </Text>
+
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={{ paddingHorizontal: 16, gap: 8 }}>
+                  {Array.from({ length: 31 }, (_, index) => index + 1).map((day) => {
+                    const isSelected = monthlyDay === day;
+
+                    return (
+                      <Pressable
+                        key={day}
+                        className="h-9 min-w-12 items-center justify-center rounded-full px-3"
+                        style={({ pressed }) => [
+                          {
+                            backgroundColor: isSelected
+                              ? selectedPaletteColor
+                              : isDark
+                                ? '#2A2A2A'
+                                : '#FFFFFF',
+                          },
+                          pressed && styles.optionPressed,
+                        ]}
+                        onPress={() => handleSelectMonthlyDay(day)}>
+                        <Text
+                          className={`text-xs font-semibold ${
+                            isSelected ? 'text-white' : isDark ? 'text-[#A5A5A5]' : 'text-[#777777]'
+                          }`}>
+                          {day}일
+                        </Text>
+                      </Pressable>
+                    );
+                  })}
+                </ScrollView>
+              </View>
+            )}
           </View>
 
           <View className="mt-8">
@@ -692,7 +819,8 @@ export default function AddRoutineScreen({ navigation }: any) {
                 <Text
                   className={`mt-1 text-xs ${isDark ? 'text-[#8D8D8D]' : 'text-[#969696]'}`}
                   numberOfLines={1}>
-                  {repeatText} · {formatDate(startDate)}부터
+                  {repeatText}
+                  {repeatDetail} · {formatDate(startDate)}부터
                 </Text>
 
                 <View className="mt-2 flex-row items-center">
